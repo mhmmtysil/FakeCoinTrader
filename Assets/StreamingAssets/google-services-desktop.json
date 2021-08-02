@@ -1,0 +1,41 @@
+{
+  "project_info": {
+    "project_number": "999696466769",
+    "firebase_url": "https://fakecointrader-default-rtdb.firebaseio.com",
+    "project_id": "fakecointrader",
+    "storage_bucket": "fakecointrader.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:999696466769:android:53be3cd636f33bf0d60970",
+        "android_client_info": {
+          "package_name": "com.GreenPalace.FakeCoinTrader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "999696466769-0dc3la3apv5vn3vg4ip9ihf7sahmcmk9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_n_W3IZeDTMkCV_k0J37_WPg72FuHVdU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "999696466769-0dc3la3apv5vn3vg4ip9ihf7sahmcmk9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-7699077044967949~7615514374"
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources tools:keep="@string/firebase_database_url,@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_web_client_id" xmlns:tools="http://schemas.android.com/tools">
+  <string name="firebase_database_url" translatable="false">https://fakecointrader-default-rtdb.firebaseio.com</string>
+  <string name="gcm_defaultSenderId" translatable="false">999696466769</string>
+  <string name="google_storage_bucket" translatable="false">fakecointrader.appspot.com</string>
+  <string name="project_id" translatable="false">fakecointrader</string>
+  <string name="google_api_key" translatable="false">AIzaSyD_n_W3IZeDTMkCV_k0J37_WPg72FuHVdU</string>
+  <string name="google_crash_reporting_api_key" translatable="false">AIzaSyD_n_W3IZeDTMkCV_k0J37_WPg72FuHVdU</string>
+  <string name="google_app_id" translatable="false">1:999696466769:android:53be3cd636f33bf0d60970</string>
+  <string name="default_web_client_id" translatable="false">999696466769-0dc3la3apv5vn3vg4ip9ihf7sahmcmk9.apps.googleusercontent.com</string>
+</resources>
