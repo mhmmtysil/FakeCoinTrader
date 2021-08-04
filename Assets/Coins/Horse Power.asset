@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Horse Power
   m_EditorClassIdentifier: 
   coinName: HorsePower
-  coinBalance: 0
+  coinBalance: 48
   hirePerClicked: 2
   diggingSpeed: 10
-  isOpened: 0
-  isHired: 0
-  unlockPrice: 100
+  isOpened: 1
+  isHired: 1
+  unlockPrice: 500

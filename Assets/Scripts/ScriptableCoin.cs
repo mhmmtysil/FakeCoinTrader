@@ -13,7 +13,5 @@ public class ScriptableCoin : ScriptableObject
     public bool isOpened;
     public bool isHired;
     public int unlockPrice;
-    
-
-
+    public bool canBeOpened;
 }

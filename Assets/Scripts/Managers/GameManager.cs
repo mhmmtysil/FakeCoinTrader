@@ -1,18 +1,25 @@
 ﻿using UnityEngine;
-using Firebase;
 using Firebase.Auth;
 using TMPro;
-using UnityEngine.Events;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
 using Firebase.Firestore;
 using Firebase.Extensions;
 using System.Collections;
+using static EventManager;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+
+    [SerializeField]
+    private Panel[] panels;
+
+    [Header("Loading Screen")]
+    public GameObject loadingScreen;
+    public GameObject loadingText;
+    public GameObject tapToContinueText;
 
     public TextMeshProUGUI usernameWarningText;
     public TMP_InputField usernameIF;
@@ -23,9 +30,6 @@ public class GameManager : MonoBehaviour
     [HideInInspector]public string username;
     public TextMeshProUGUI userMailText;
     [Header("Panels")]
-    public GameObject newUserPanel;
-    public GameObject mainMenuPanel;
-    public GameObject loadingScreen;
 
     public GameObject signInPanel;
     public GameObject signUpPanel;
@@ -38,39 +42,41 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI levelText;
     public Slider expSlider;
     public GameObject levelUp;
-    [HideInInspector] public int exp;
-    [HideInInspector] public int maxExp;
+    [HideInInspector] public long exp;
+    [HideInInspector] public long maxExp;
     [HideInInspector] public int level;
+    public TextMeshProUGUI untakenLevelRewardText;
+    int untakenLevelReward;
 
     [Header("Fake Coin")]
 
-    [HideInInspector] public int fakeCoin;
-    public int _fakeCoin { get { return fakeCoin; } set { fakeCoin = value; } }
+    private int fakeCoin;
+    public int FakeCoin { get { return fakeCoin; } set { fakeCoin = value; } }
 
 
     [Header("Horse Power Coin")]
 
     private int horsePower;
-    public int _horsePower { get { return horsePower; } set { horsePower = value; } }
+    public int HorsePower { get { return horsePower; } set { horsePower = value; } }
 
     [Header("Light Core Coin")]
 
-    [HideInInspector] public int lightCore;
-    public int _lightCore { get { return lightCore; } set { lightCore = value; } }
+    private int lightCore;
+    public int LightCore { get { return lightCore; } set { lightCore = value; } }
 
     [Header("Odea Coin")]
-    [HideInInspector] public int odeaCoin;
-    public int _odeaCoin { get { return odeaCoin; } set { odeaCoin = value; } }
+    private int odeaCoin;
+    public int OdeaCoin { get { return odeaCoin; } set { odeaCoin = value; } }
 
     [Header("Inogami Coin")]
 
-    [HideInInspector] public int inogamiCoin; 
-    public int _inogamiCoin { get { return inogamiCoin; } set { inogamiCoin = value; } }
+    private int inogamiCoin; 
+    public int InogamiCoin { get { return inogamiCoin; } set { inogamiCoin = value; } }
 
     [Header("Griffon Coin")]
 
-    [HideInInspector] public int griffonCoin;
-    public int _griffonCoin { get { return griffonCoin; } set { griffonCoin = value; } }
+    private int griffonCoin;
+    public int GriffonCoin { get { return griffonCoin; } set { griffonCoin = value; } }
 
 
     [Header("User Input Fields")]
@@ -87,11 +93,11 @@ public class GameManager : MonoBehaviour
 
     [Header("Emerald")]
     private int emerald; 
-    public int _emerald{ get { return emerald; } set { emerald = value; }}
+    public int Emerald{ get { return emerald; } set { emerald = value; }}
 
     [Header("Coin")]
     private int coin;
-    public int _coin { get { return coin; } set { coin = value; } }
+    public int Coin { get { return coin; } set { coin = value; } }
 
 
     [HideInInspector] public bool fakeCoinOpened;
@@ -116,7 +122,7 @@ public class GameManager : MonoBehaviour
     private int avatarNum;
     public Sprite[] avatarList;
 
-
+    
 
     private void Awake()
     {
@@ -127,20 +133,19 @@ public class GameManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
-        }
-    }
-    public void Start()
-    {
+        }        
         InitializeFirebase();
     }
 
     #region Firebase Field
     public void InitializeFirebase()
     {
+
         db = FirebaseFirestore.DefaultInstance;
         auth = FirebaseAuth.DefaultInstance;
         auth.StateChanged += AuthStateChanged;
         AuthStateChanged(this, null);
+        
     }
     public void SignUpWithMail()
     {
@@ -159,7 +164,7 @@ public class GameManager : MonoBehaviour
             signInPanel.SetActive(false);
             signUpPanel.SetActive(false);
             setUsernamePanel.SetActive(true);
-            Debug.Log("User Created Succesfully..");            
+            Debug.Log("User Created Succesfully..");
 
         });
     }
@@ -180,7 +185,7 @@ public class GameManager : MonoBehaviour
                 Debug.LogError("SignInWithEmailAndPasswordAsync encountered an error: " + task.Exception);
             }
             user = task.Result;            
-            Debug.Log("User Signed in Succesfully..");
+            
         });
     }
 
@@ -195,13 +200,11 @@ public class GameManager : MonoBehaviour
         {
             bool signedIn = user != auth.CurrentUser && auth.CurrentUser != null;
             if (!signedIn && user != null)
-            {
-                newUserPanel.SetActive(true);
-                mainMenuPanel.SetActive(false);
+            {                
+                PanelChange(PanelType.NewUser);
                 signInPanel.SetActive(true);
                 signUpPanel.SetActive(false);
                 setUsernamePanel.SetActive(false);
-                Debug.Log("User Not Logged In..");
             }
             user = auth.CurrentUser;
             if (signedIn)
@@ -211,7 +214,7 @@ public class GameManager : MonoBehaviour
                 {
                     var snapshot = task.Result;
                     if (snapshot.Exists && task.IsCompleted)
-                    {                       
+                    {
                         Debug.Log(String.Format("Document data for {0} document:", snapshot.Id));
                         UserDataClass user = snapshot.ConvertTo<UserDataClass>();
 
@@ -221,6 +224,8 @@ public class GameManager : MonoBehaviour
                         coin = user.Coin;
                         emerald = user.Emerald;
                         level = user.Level;
+                        untakenLevelReward = user.UnTakenRewardForLevel;
+
                         fakeCoin = user.FakeCoin;
                         horsePower = user.HorsePower;
                         lightCore = user.LightCore;
@@ -240,36 +245,44 @@ public class GameManager : MonoBehaviour
                         lightCoreHired = user.LightCoreHired;
                         odeaCoinHired = user.OdeaCoinHired;
                         inogamiCoinHired = user.InogamiCoinHired;
-                        griffonCoinHired = user.GriffonCoinHired;
+                        griffonCoinHired = user.GriffonCoinHired;                        
 
-
-                        newUserPanel.SetActive(false);
-                        mainMenuPanel.SetActive(true);
-                        signInPanel.SetActive(false);
-                        signUpPanel.SetActive(false);
-                        setUsernamePanel.SetActive(true);
-
-                        mainMenuPanel.SetActive(true);
                         usernameText.text = username;
-                        expText.text = exp + "/" + maxExp;
+                        ConvertExpText();
                         expSlider.value = Convert.ToSingle(exp / maxExp);
                         levelText.text = level.ToString();
                         coinBalanceText.text = coin.ToString();
                         emeraldBalanceText.text = emerald.ToString();
 
+                        if (untakenLevelReward > 0)
+                        {
+                            PanelChange(PanelType.LevelUp);
+                            untakenLevelRewardText.text = "x" + untakenLevelReward;
+                        }
+                        else
+                        {
+                            untakenLevelReward = 10;
+                            untakenLevelRewardText.text = "x10";
+                            PanelChange(PanelType.MainMenu);
+                            signInPanel.SetActive(false);
+                            signUpPanel.SetActive(false);
+                            setUsernamePanel.SetActive(true);
+                        }
+                        
                     }
                     else
                     {
                         Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
-                        newUserPanel.SetActive(true);
-                        mainMenuPanel.SetActive(false);
+                        PanelChange(PanelType.NewUser);
                         signInPanel.SetActive(false);
                         signUpPanel.SetActive(false);
                         setUsernamePanel.SetActive(true);
                     }
                 });
-                userMailText.text = "Kullanıcı Mail Adresi : " + Environment.NewLine + user.Email;
-                Debug.Log("User Logged In. Listener Works Correctly.");
+                userMailText.text = "Kullanıcı Mail Adresi : " + Environment.NewLine + user.Email;                
+            }
+            else
+            {
             }
         }
     }
@@ -286,7 +299,6 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
-
 
     public void SaveUserDatas()
     {
@@ -318,6 +330,7 @@ public class GameManager : MonoBehaviour
                 OdeaCoin = 0,
                 InogamiCoin = 0,
                 GriffonCoin = 0,
+                UnTakenRewardForLevel = 0,
 
                 FakeCoinOpened = true,
                 HorsePowerOpened = false,
@@ -356,6 +369,7 @@ public class GameManager : MonoBehaviour
                                 coin = user.Coin;
                                 emerald = user.Emerald;
                                 level = user.Level;
+                                untakenLevelReward = user.UnTakenRewardForLevel;
 
                                 fakeCoin = user.FakeCoin;
                                 horsePower = user.HorsePower;
@@ -371,24 +385,21 @@ public class GameManager : MonoBehaviour
                                 inogamiCoinOpened = user.InogamiCoinOpened;
                                 griffonCoinOpened = user.InogamiCoinOpened;
                             }
-                            newUserPanel.SetActive(false);
-                            mainMenuPanel.SetActive(true);
+                            PanelChange(PanelType.MainMenu);
+                            untakenLevelRewardText.text = "x10";
                             signInPanel.SetActive(false);
                             signUpPanel.SetActive(false);
                             setUsernamePanel.SetActive(false);
-                            Debug.Log("User Has a Doc..");
                         }
                         else
                         {
-                            newUserPanel.SetActive(true);
-                            mainMenuPanel.SetActive(false);
+                            PanelChange(PanelType.NewUser);
                             signInPanel.SetActive(false);
                             signUpPanel.SetActive(false);
                             setUsernamePanel.SetActive(true);
-                            Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
                         }
                         usernameText.text = username;
-                        expText.text = exp + "/" + maxExp;
+                        ConvertExpText();
                         expSlider.value = Convert.ToSingle(exp / maxExp);
                         levelText.text = level.ToString();
                         coinBalanceText.text = coin.ToString();
@@ -400,6 +411,7 @@ public class GameManager : MonoBehaviour
         }
         
     }
+
     #endregion
 
     #region Update Firestore Fields
@@ -413,43 +425,73 @@ public class GameManager : MonoBehaviour
 
     public void UpdateCoinsText(string coinname, int balance)
     {
-        DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
-        userRef.UpdateAsync(coinname, balance);
+        if (auth.CurrentUser!=null)
+        {
+            DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
+            userRef.UpdateAsync(coinname, balance);
+        }
+        
     }
-
-    public void SetCoinUnlock(string coinName, bool isopened)
+    public void SetCoinUnlock(string coinName)
     {
         DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
         userRef.UpdateAsync(coinName+"Opened", true);
     }
 
-    public void SetCoinHired(string coinName, bool isopened)
+    public void SetCoinHired(string coinName)
     {
         DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
         userRef.UpdateAsync(coinName + "Hired", true);
     }
 
+    public void SetUntakenLevelReward(int r)
+    {
+        DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
+        userRef.UpdateAsync("UnTakenRewardForLevel", r);
+    }
+    public void GetUntakenLevelReward()
+    {
+        GiveEmerald(untakenLevelReward);
+        SetUntakenLevelReward(0);
+        untakenLevelReward = 0;
+        untakenLevelRewardText.text = "x0";
+        PanelChange(PanelType.MainMenu);
+    }
+
     #endregion
 
     #region Exp Manager
+
+    private void ConvertExpText()
+    {
+        expText.text = exp.ToString("#,##0").Replace(',', '.') + "/" + maxExp.ToString("#,##0").Replace(',', '.'); 
+    }
+
     public void SetLevel(int value)
     {
         level += value;
         levelText.text = level.ToString();
-        maxExp += 200;
+        maxExp += level * 100;
         UpdateMaxExp();
     }
     public void GiveExp(int value) 
     {
         exp += value;
         if (exp >= maxExp)
-        {            
+        {
+            PanelChange(PanelType.LevelUp);
             exp -= maxExp;
             SetLevel(1);
-            levelUp.SetActive(true);
-        }
+            untakenLevelReward += 10;
+            SetUntakenLevelReward(10);
+            untakenLevelRewardText.text = "x" + untakenLevelReward;
+            if (exp>maxExp)
+            {
+                GiveExp(0);
+            }            
+        }        
         UpdateExp();
-        expText.text = exp + "/" + maxExp;
+        ConvertExpText();
         expSlider.value = Convert.ToSingle(exp) / Convert.ToSingle(maxExp);
     }
 
@@ -463,11 +505,6 @@ public class GameManager : MonoBehaviour
         DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
         userRef.UpdateAsync("MaxExp", maxExp);
         userRef.UpdateAsync("Level", level);
-    }
-    public void LevelUpPrice()
-    {
-        GiveEmerald(10);
-        levelUp.SetActive(false);
     }
 
     #endregion
@@ -518,17 +555,21 @@ public class GameManager : MonoBehaviour
     #endregion
     
     #region Coin
+
     public void UpdateCoinTexts()
     {
         DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
         userRef.UpdateAsync("Coin", coin);
         coinBalanceText.text = coin.ToString();
+
     }
+
     public void GiveCoin(int coinToGive)
     {
         coin += coinToGive;
         UpdateCoinTexts();
     }
+
     public void BuyWithCoin(int price)
     {
         if (price > coin)
@@ -544,16 +585,122 @@ public class GameManager : MonoBehaviour
     }
     #endregion
 
-
-    public void CheckInterstitialStatue()
+    public void PanelChange(PanelType panel)
     {
-
+        switch (panel)
+        {
+            case PanelType.NewUser:
+                panels[0].gameObject.SetActive(true);
+                panels[1].gameObject.SetActive(false);
+                panels[2].gameObject.SetActive(false);
+                panels[3].gameObject.SetActive(false);
+                panels[4].gameObject.SetActive(false);
+                panels[5].gameObject.SetActive(false);
+                panels[6].gameObject.SetActive(false);
+                panels[7].gameObject.SetActive(false);
+                panels[8].gameObject.SetActive(false);
+                break;
+            case PanelType.MainMenu:
+                panels[0].gameObject.SetActive(false);
+                panels[1].gameObject.SetActive(true);
+                panels[2].gameObject.SetActive(false);
+                panels[3].gameObject.SetActive(false);
+                panels[4].gameObject.SetActive(false);
+                panels[5].gameObject.SetActive(false);
+                panels[6].gameObject.SetActive(false);
+                panels[7].gameObject.SetActive(false);
+                panels[8].gameObject.SetActive(false);
+                break;
+            case PanelType.Trade:
+                panels[0].gameObject.SetActive(false);
+                panels[1].gameObject.SetActive(true);
+                panels[2].gameObject.SetActive(true);
+                panels[3].gameObject.SetActive(false);
+                panels[4].gameObject.SetActive(false);
+                panels[5].gameObject.SetActive(false);
+                panels[6].gameObject.SetActive(false);
+                panels[7].gameObject.SetActive(false);
+                panels[8].gameObject.SetActive(false);
+                break;
+            case PanelType.Hire:
+                panels[0].gameObject.SetActive(false);
+                panels[1].gameObject.SetActive(true);
+                panels[2].gameObject.SetActive(false);
+                panels[3].gameObject.SetActive(true);
+                panels[4].gameObject.SetActive(false);
+                panels[5].gameObject.SetActive(false);
+                panels[6].gameObject.SetActive(false);
+                panels[7].gameObject.SetActive(false);
+                panels[8].gameObject.SetActive(false);
+                break;
+            case PanelType.Shop:
+                panels[0].gameObject.SetActive(false);
+                panels[1].gameObject.SetActive(true);
+                panels[2].gameObject.SetActive(false);
+                panels[3].gameObject.SetActive(false);
+                panels[4].gameObject.SetActive(true);
+                panels[5].gameObject.SetActive(false);
+                panels[6].gameObject.SetActive(false);
+                panels[7].gameObject.SetActive(false);
+                panels[8].gameObject.SetActive(false);
+                break;
+            case PanelType.Profile:
+                panels[0].gameObject.SetActive(false);
+                panels[1].gameObject.SetActive(true);
+                panels[2].gameObject.SetActive(false);
+                panels[3].gameObject.SetActive(false);
+                panels[4].gameObject.SetActive(false);
+                panels[5].gameObject.SetActive(true);
+                panels[6].gameObject.SetActive(false);
+                panels[7].gameObject.SetActive(false);
+                panels[8].gameObject.SetActive(false);
+                break;            
+            case PanelType.Settings:
+                panels[0].gameObject.SetActive(false);
+                panels[1].gameObject.SetActive(true);
+                panels[2].gameObject.SetActive(false);
+                panels[3].gameObject.SetActive(false);
+                panels[4].gameObject.SetActive(false);
+                panels[5].gameObject.SetActive(false);
+                panels[6].gameObject.SetActive(true);
+                panels[7].gameObject.SetActive(false);
+                panels[8].gameObject.SetActive(false);
+                break;
+            case PanelType.LevelUp:
+                panels[0].gameObject.SetActive(false);
+                panels[1].gameObject.SetActive(true);
+                panels[2].gameObject.SetActive(false);
+                panels[3].gameObject.SetActive(false);
+                panels[4].gameObject.SetActive(false);
+                panels[5].gameObject.SetActive(false);
+                panels[6].gameObject.SetActive(false);
+                panels[7].gameObject.SetActive(true);
+                panels[8].gameObject.SetActive(false);
+                break;
+            case PanelType.Loading:
+                panels[8].gameObject.SetActive(true);
+                break;
+        }
     }
+}
+
+public enum PanelType
+{
+    NewUser,
+    MainMenu,
+    Trade,
+    Hire,
+    Shop,
+    Profile,
+    Settings,
+    LevelUp,
+    Loading
 }
 
 [FirestoreData]
 public class UserDataClass
 {
+
     [FirestoreProperty]
     public string Username { get; set; }
     [FirestoreProperty]
@@ -561,12 +708,15 @@ public class UserDataClass
     [FirestoreProperty]
     public int Coin { get; set; }
     [FirestoreProperty]
-    public int Exp { get; set; }
+    public long Exp { get; set; }
 
     [FirestoreProperty]
-    public int MaxExp { get; set; }
+    public long MaxExp { get; set; }
     [FirestoreProperty]
     public int Level { get; set; }
+
+    [FirestoreProperty]
+    public int UnTakenRewardForLevel { get; set; }
     [FirestoreProperty]
 
     // --------------------- Coin Balances Properties ---------------------

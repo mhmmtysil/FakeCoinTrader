@@ -18,4 +18,5 @@ MonoBehaviour:
   diggingSpeed: 12
   isOpened: 0
   isHired: 0
-  unlockPrice: 500
+  unlockPrice: 1500
+  canBeOpened: 0

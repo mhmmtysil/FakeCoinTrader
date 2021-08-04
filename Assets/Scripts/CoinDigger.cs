@@ -70,7 +70,7 @@ public class CoinDigger : MonoBehaviour
     }
     public void Hire(int price)
     {
-        int emerald = GameManager.Instance._emerald;
+        int emerald = GameManager.Instance.Emerald;
         Debug.Log(emerald);
         if (price<= emerald)
         {
@@ -140,9 +140,9 @@ public class CoinDigger : MonoBehaviour
 
     public void BuyCoinWithGold(int price)
     {
-        if (GameManager.Instance._coin >= price)
+        if (GameManager.Instance.Coin >= price)
         {
-            GameManager.Instance._coin -= price;
+            GameManager.Instance.Coin -= price;
             coinBalance += price;
             UpdateCoinBalanceTexts(coinBalance);
             GameManager.Instance.UpdateCoinTexts();

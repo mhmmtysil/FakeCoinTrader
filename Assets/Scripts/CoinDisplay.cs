@@ -29,6 +29,7 @@ public class CoinDisplay : MonoBehaviour
     public int hirePerClicked;
     public float diggingSpeed;
 
+
     void OnEnable()
     {
         StartCoroutine(GetInfos());
@@ -44,31 +45,31 @@ public class CoinDisplay : MonoBehaviour
         switch (coin.coinName)
         {
             case "FakeCoin":
-                coin.coinBalance = GameManager.Instance._fakeCoin;
+                coin.coinBalance = GameManager.Instance.FakeCoin;
                 coin.isHired = GameManager.Instance.fakeCoinHired; 
                 break;
             case "HorsePower":
-                coin.coinBalance = GameManager.Instance._horsePower;
+                coin.coinBalance = GameManager.Instance.HorsePower;
                 coin.isOpened = GameManager.Instance.horsePowerOpened;
                 coin.isHired = GameManager.Instance.horsePowerHired;
                 break;
             case "LightCore":
-                coin.coinBalance = GameManager.Instance._lightCore;
+                coin.coinBalance = GameManager.Instance.LightCore;
                 coin.isOpened = GameManager.Instance.lightCoreOpened;
                 coin.isHired = GameManager.Instance.lightCoreHired;
                 break;
             case "OdeaCoin":
-                coin.coinBalance = GameManager.Instance._odeaCoin;
+                coin.coinBalance = GameManager.Instance.OdeaCoin;
                 coin.isOpened = GameManager.Instance.odeaCoinOpened;
                 coin.isHired = GameManager.Instance.odeaCoinHired;
                 break;
             case "InogamiCoin":
-                coin.coinBalance = GameManager.Instance._inogamiCoin;
+                coin.coinBalance = GameManager.Instance.InogamiCoin;
                 coin.isOpened = GameManager.Instance.inogamiCoinOpened;
                 coin.isHired = GameManager.Instance.inogamiCoinHired;
                 break;
             case "GriffonCoin":
-                coin.coinBalance = GameManager.Instance._griffonCoin;
+                coin.coinBalance = GameManager.Instance.GriffonCoin;
                 coin.isOpened = GameManager.Instance.griffonCoinOpened;
                 coin.isHired = GameManager.Instance.griffonCoinHired;
                 break;
@@ -100,7 +101,7 @@ public class CoinDisplay : MonoBehaviour
     }
     private void CheckLockImageSprite()
     {
-        if (coin.unlockPrice <= GameManager.Instance._coin)
+        if (coin.unlockPrice <= GameManager.Instance.Coin)
         {
             lockedButton.image.sprite = canBeOpened;
             lockedButton.interactable = true;
@@ -134,11 +135,11 @@ public class CoinDisplay : MonoBehaviour
     }
     public void Hire(int price)
     {
-        if (price <= GameManager.Instance._emerald)
+        if (price <= GameManager.Instance.Emerald)
         {
-            GameManager.Instance._emerald -= price;
+            GameManager.Instance.Emerald -= price;
             GameManager.Instance.UpdateEmerald();
-            GameManager.Instance.SetCoinHired(coin.coinName, true);
+            GameManager.Instance.SetCoinHired(coin.coinName);
         }
         else
         {
@@ -150,20 +151,20 @@ public class CoinDisplay : MonoBehaviour
 
     public void OpenCoin(int price)
     {
-        if (price <= GameManager.Instance._coin)
+        if (price <= GameManager.Instance.Coin)
         {
             GameManager.Instance.BuyWithCoin(price);
             lockedButton.gameObject.SetActive(false);
-            GameManager.Instance.SetCoinUnlock(coin.coinName, true);
+            GameManager.Instance.SetCoinUnlock(coin.coinName);
         }
     }
     public void OpenCoinWithEmerald(int price)
     {
-        if (price <= GameManager.Instance._emerald)
+        if (price <= GameManager.Instance.Emerald)
         {
             GameManager.Instance.BuyWithEmerald(price);
             lockedButton.gameObject.SetActive(false);
-            GameManager.Instance.SetCoinUnlock(coin.coinName, true);
+            GameManager.Instance.SetCoinUnlock(coin.coinName);
         }
     }
     
@@ -172,20 +173,20 @@ public class CoinDisplay : MonoBehaviour
         coinBalanceText.text = coin.coinName + " (" + coin.coinBalance + " adet)";
         coinBalanceTradePanelText.text = "Bakiye : " + _coinBalance;
         coinPerMinuteText.text = 60 / diggingSpeed * hirePerClicked + "/dakika.";
-        GameManager.Instance.UpdateCoinsText(coin.coinName, coin.coinBalance);
+        //GameManager.Instance.UpdateCoinsText(coin.coinName, coin.coinBalance);
     }
     public void GiveCoin()
     {
         coin.coinBalance++;
-        GameManager.Instance.UpdateCoinsText(coin.coinName, coin.coinBalance);
+        //GameManager.Instance.UpdateCoinsText(coin.coinName, coin.coinBalance);
 
     }
 
     public void BuyCoinWithGold(int price)
     {
-        if (GameManager.Instance._coin >= price)
+        if (GameManager.Instance.Coin >= price)
         {
-            GameManager.Instance._coin -= price;
+            GameManager.Instance.Coin -= price;
             coin.coinBalance += price;
             UpdateCoinBalanceTexts(coin.coinBalance);
             GameManager.Instance.UpdateCoinTexts();

@@ -17,6 +17,13 @@ public class HirePanel : MonoBehaviour
         inogamiCoin.CheckLockStatus();
         lightCore.CheckLockStatus();
         odeaCoin.CheckLockStatus();
+
+        griffonCoin.CheckHireStatus();
+        horseCoin.CheckHireStatus();
+        inogamiCoin.CheckHireStatus();
+        lightCore.CheckHireStatus();
+        odeaCoin.CheckHireStatus();
+
         gameObject.SetActive(true);
     }
 }
