@@ -11,7 +11,7 @@ public class GriffonCoin : MonoBehaviour
     public TextMeshProUGUI coinBalanceText;
     public TextMeshProUGUI coinBalanceTradePanelText;
     public TextMeshProUGUI coinPerMinuteText;
-    public TextMeshProUGUI hiredText;
+    public GameObject hiredText;
 
     public Button digButton;
     public Button hirePanelHireButton;
@@ -49,7 +49,7 @@ public class GriffonCoin : MonoBehaviour
             lockedIcon.sprite = grayLocked;
             lockedButton.interactable = false;
         }
-        if (GameManager.Instance.griffonCoinOpened)
+        if (coin.isOpened)
         {
             lockedImageHirePanel.SetActive(false);
         }
@@ -110,14 +110,14 @@ public class GriffonCoin : MonoBehaviour
         {
             hirePanelHireButton.gameObject.SetActive(false);
             hirePanelHiredButton.SetActive(true);
-            hiredText.gameObject.SetActive(true);
+            hiredText.SetActive(true);
             digButton.gameObject.SetActive(false);
         }
         else
         {
             hirePanelHireButton.gameObject.SetActive(true);
             hirePanelHiredButton.SetActive(false);
-            hiredText.gameObject.SetActive(false);
+            hiredText.SetActive(false);
             digButton.gameObject.SetActive(true);
         }
     }
@@ -129,6 +129,7 @@ public class GriffonCoin : MonoBehaviour
             GameManager.Instance.UpdateEmerald();
             GameManager.Instance.SetCoinHired(coin.coinName);
             coin.isHired = true;
+            CheckHireStatus();
         }
         else
         {

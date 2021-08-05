@@ -15,7 +15,8 @@ MonoBehaviour:
   coinName: InogamiCoin
   coinBalance: 0
   hirePerClicked: 6
-  diggingSpeed: 35
+  diggingSpeed: 60
   isOpened: 0
   isHired: 0
   unlockPrice: 1000
+  canBeOpened: 0

@@ -13,9 +13,10 @@ MonoBehaviour:
   m_Name: Fake Coin
   m_EditorClassIdentifier: 
   coinName: FakeCoin
-  coinBalance: 99
+  coinBalance: 417
   hirePerClicked: 1
-  diggingSpeed: 4
+  diggingSpeed: 2
   isOpened: 1
-  isHired: 1
+  isHired: 0
   unlockPrice: 0
+  canBeOpened: 0

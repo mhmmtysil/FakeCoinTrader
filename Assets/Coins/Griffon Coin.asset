@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coinName: GriffonCoin
   coinBalance: 0
-  hirePerClicked: 2
+  hirePerClicked: 3
   diggingSpeed: 180
   isOpened: 0
   isHired: 0
   unlockPrice: 1500
+  canBeOpened: 0

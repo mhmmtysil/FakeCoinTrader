@@ -11,7 +11,7 @@ public class InogamiCoin : MonoBehaviour
     public TextMeshProUGUI coinBalanceText;
     public TextMeshProUGUI coinBalanceTradePanelText;
     public TextMeshProUGUI coinPerMinuteText;
-    public TextMeshProUGUI hiredText;
+    public GameObject hiredText;
 
     public Button digButton;
     public Button hirePanelHireButton;
@@ -48,16 +48,17 @@ public class InogamiCoin : MonoBehaviour
             lockedIcon.sprite = grayLocked;
             lockedButton.interactable = false;
         }
-        if (GameManager.Instance.inogamiCoinOpened)
+        if (coin.isOpened)
         {
-            lockedImageHirePanel.SetActive(false);
             nextCoin.SetActive(true);
+            lockedImageHirePanel.SetActive(false);
         }
         else
         {
-            lockedImageHirePanel.SetActive(true);
             nextCoin.SetActive(false);
+            lockedImageHirePanel.SetActive(true);
         }
+        CheckHireStatus();
     }
 
 
@@ -110,14 +111,14 @@ public class InogamiCoin : MonoBehaviour
         {
             hirePanelHireButton.gameObject.SetActive(false);
             hirePanelHiredButton.SetActive(true);
-            hiredText.gameObject.SetActive(true);
+            hiredText.SetActive(true);
             digButton.gameObject.SetActive(false);
         }
         else
         {
             hirePanelHireButton.gameObject.SetActive(true);
             hirePanelHiredButton.SetActive(false);
-            hiredText.gameObject.SetActive(false);
+            hiredText.SetActive(false);
             digButton.gameObject.SetActive(true);
         }
     }

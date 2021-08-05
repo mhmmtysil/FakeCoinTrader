@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Light Core
   m_EditorClassIdentifier: 
   coinName: LightCore
-  coinBalance: 0
+  coinBalance: 15
   hirePerClicked: 3
-  diggingSpeed: 12
+  diggingSpeed: 15
   isOpened: 0
   isHired: 0
   unlockPrice: 1500

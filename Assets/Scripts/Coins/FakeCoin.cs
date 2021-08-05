@@ -12,7 +12,7 @@ public class FakeCoin : MonoBehaviour
     public TextMeshProUGUI coinBalanceText;
     public TextMeshProUGUI coinBalanceTradePanelText;
     public TextMeshProUGUI coinPerMinuteText;
-    public TextMeshProUGUI hiredText;
+    public GameObject hiredText;
 
     public Button digButton;
     public Button hirePanelHireButton;
@@ -48,12 +48,14 @@ public class FakeCoin : MonoBehaviour
 
     public void CoinsDiggingSpeedDoubler()
     {
-        coin.diggingSpeed /= 2;
-        second = (int)coin.diggingSpeed;
-        TimeSpan result = TimeSpan.FromSeconds(second);
-        string fromTimeString = result.ToString("mm':'ss");
-        coinPerMinuteText.text = fromTimeString;
+        if (coin.diggingSpeed-2>0)
+        {
+            coin.diggingSpeed -= 2;
+            StopCoroutine(AnimateSliderOverTime());
+            StartCoroutine(AnimateSliderOverTime());
+        }
     }
+
     public void CheckLockStatus()
     {
         if (coin.isOpened)
@@ -81,13 +83,13 @@ public class FakeCoin : MonoBehaviour
         if (coin.isHired)
         {
             hirePanelHireButton.gameObject.SetActive(false);
-            hiredText.gameObject.SetActive(true);
+            hiredText.SetActive(true);
             digButton.gameObject.SetActive(false);
         }
         else
         {
             hirePanelHireButton.gameObject.SetActive(true);
-            hiredText.gameObject.SetActive(false);
+            hiredText.SetActive(false);
             digButton.gameObject.SetActive(true);
         }
     }
@@ -99,6 +101,7 @@ public class FakeCoin : MonoBehaviour
             GameManager.Instance.UpdateEmerald();
             GameManager.Instance.SetCoinHired(coin.coinName);
             coin.isHired = true;
+            CheckHireStatus();
         }
         else
         {

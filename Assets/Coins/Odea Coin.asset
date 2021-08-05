@@ -15,7 +15,8 @@ MonoBehaviour:
   coinName: OdeaCoin
   coinBalance: 0
   hirePerClicked: 4
-  diggingSpeed: 20
+  diggingSpeed: 30
   isOpened: 0
   isHired: 0
   unlockPrice: 1500
+  canBeOpened: 0

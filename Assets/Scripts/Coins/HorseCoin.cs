@@ -12,7 +12,7 @@ public class HorseCoin : MonoBehaviour
     public TextMeshProUGUI coinBalanceText;
     public TextMeshProUGUI coinBalanceTradePanelText;
     public TextMeshProUGUI coinPerMinuteText;
-    public TextMeshProUGUI hiredText;
+    public GameObject hiredText;
 
     public Button digButton;
     public Button hirePanelHireButton;
@@ -48,6 +48,16 @@ public class HorseCoin : MonoBehaviour
             lockedButton.image.sprite = cannotBeOpened;
             lockedIcon.sprite = grayLocked;
             lockedButton.interactable = false;
+        }
+        if (coin.isOpened)
+        {
+            nextCoin.SetActive(true);
+            lockedImageHirePanel.SetActive(false);
+        }
+        else
+        {
+            nextCoin.SetActive(false);
+            lockedImageHirePanel.SetActive(true);
         }
     }
 
@@ -115,14 +125,14 @@ public class HorseCoin : MonoBehaviour
         {
             hirePanelHireButton.gameObject.SetActive(false);
             hirePanelHiredButton.SetActive(true);
-            hiredText.gameObject.SetActive(true);
+            hiredText.SetActive(true);
             digButton.gameObject.SetActive(false);
         }
         else
         {
             hirePanelHireButton.gameObject.SetActive(true);
             hirePanelHiredButton.SetActive(false);
-            hiredText.gameObject.SetActive(false);
+            hiredText.SetActive(false);
             digButton.gameObject.SetActive(true);
         }
     }
