@@ -8,7 +8,12 @@ public class MailSystem : MonoBehaviour
 {
 
     //Oyunumuzu yüklediðin için sana bir hoþgeldin hediyesi vermek istedim. Umarým geliþtirme süresince bizlerle birlikte kalmaya devam edersin. Seviliyorsun. :)
-    public ScriptableMail mail;
+    public string mailSender;
+    public string mailInfo;
+    public MailStatus mailStatus;
+    public int rewardPiece;
+    public int mailNumber;
+
     public GameObject mailInfoBg;
     public GameObject mailPrefab;
     public GameObject mailHolder;
@@ -22,7 +27,6 @@ public class MailSystem : MonoBehaviour
     public Sprite goldSprite;
     public Button collectButton;
     private GameObject instantiatedMail;
-    public int mailNumber;
 
     int unreadedMailCount;
     public int UnreadedMailCount
@@ -52,12 +56,23 @@ public class MailSystem : MonoBehaviour
             mailNotification.SetActive(false);
         }
     }
+
+    public void SendGoldMail(int goldPiece)
+    {
+        unreadedMailCount++;
+        GameObject mailPref = Instantiate(mailPrefab, mailHolder.transform);
+        mailPref.transform.Find("mailFromSender").GetComponentInChildren<TextMeshProUGUI>().text = mailSender;
+        mailPref.GetComponent<Button>().onClick.AddListener(delegate { DetailedMailOpen(mailSender, mailInfo, goldSprite, goldPiece, RewardTypes.gold); });
+        instantiatedMail = mailPref;
+        NotificationStatus();
+
+    }
     public void SendEmeraldMail(int emeraldPiece)
     {
         unreadedMailCount++;
         GameObject mailPref = Instantiate(mailPrefab, mailHolder.transform);
-        mailPref.transform.Find("mailFromSender").GetComponentInChildren<TextMeshProUGUI>().text = mail.mailSender;
-        mailPref.GetComponent<Button>().onClick.AddListener(delegate { DetailedMailOpen(mail.mailSender, mail.mailInfo,emeraldSprite,emeraldPiece,RewardTypes.emerald) ; });
+        mailPref.transform.Find("mailFromSender").GetComponentInChildren<TextMeshProUGUI>().text = mailSender;
+        mailPref.GetComponent<Button>().onClick.AddListener(delegate { DetailedMailOpen(mailSender, mailInfo,emeraldSprite,emeraldPiece,RewardTypes.emerald) ; });
         instantiatedMail = mailPref;
         NotificationStatus();
 
@@ -68,8 +83,8 @@ public class MailSystem : MonoBehaviour
         mailInfoBg.SetActive(true);
         senderText.text = sender;
         infoText.text = info;
-        mail.mailStatus = MailStatus.readed;
-        mail.rewardPiece = rewardPeice;
+        mailStatus = MailStatus.readed;
+        rewardPiece = rewardPeice;
         mailRewardType.sprite = mailRewardtype;
         mailRewardPieceText.text = rewardPeice.ToString();
         collectButton.onClick.AddListener(delegate { GetRewardPiece(rewardPeice, r,mailNumber); });
@@ -85,15 +100,8 @@ public class MailSystem : MonoBehaviour
         {
             GameManager.Instance.GiveEmerald(piece);
         }
-
-        instantiatedMail.GetComponent<Mail>().mailStatus = MailStatus.rewarded;
         mailInfoBg.SetActive(false);
         NotificationStatus();
-        DeleteMail(mailNumber);
-    }
-
-    public void DeleteMail(int mailNumber)
-    {
         GameManager.Instance.DeleteMail(mailNumber);
     }
 }

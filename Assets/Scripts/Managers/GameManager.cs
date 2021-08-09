@@ -16,6 +16,25 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Panel[] panels;
 
+    [Header("Mail Fields")]
+
+    public string mailSender;
+    public string mailInfo;
+    public int rewardPiece;
+    public int mailNumber;
+
+    public GameObject mailPrefab;
+    public GameObject mailHolder;
+    public GameObject mailNotification;
+    public GameObject mainNotification;
+    public Sprite emeraldSprite;
+    public Sprite goldSprite;
+    int unreadedMailCount;
+    int mailID;
+
+    [Header("Mail Detailed Info")]
+    public GameObject detailedMailBgPref;
+    public RectTransform detailedMailBg;
 
     [Header("Loading Screen")]
     public GameObject loadingScreen;
@@ -128,10 +147,6 @@ public class GameManager : MonoBehaviour
 
     public CoinStatus coinStatus;
 
-    public MailSystem mailSystem;
-    int mailCounts;
-    string mailInfo;
-    public int mailNumber; 
 
 
     
@@ -152,7 +167,6 @@ public class GameManager : MonoBehaviour
     #region Firebase Field
     public void InitializeFirebase()
     {
-        mailCounts = PlayerPrefs.GetInt("MailCount");
         db = FirebaseFirestore.DefaultInstance;
         auth = FirebaseAuth.DefaultInstance;
         auth.StateChanged += AuthStateChanged;
@@ -229,7 +243,7 @@ public class GameManager : MonoBehaviour
                     if (snapshot.Exists && task.IsCompleted)
                     {
                         MailCount mailcount = snapshot.ConvertTo<MailCount>();
-                        mailCounts = mailcount.mailCount;
+                        mailNumber = mailcount.mailCount;
                     }
                 });
                 DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
@@ -543,10 +557,12 @@ public class GameManager : MonoBehaviour
     }
     void SaveMailCount(int mailCount)
     {
-        mailSystem.mailNumber = mailCount;
+        mailNumber = mailCount;
         DocumentReference userRef = db.Collection("Mails").Document("SendedMails");
         userRef.UpdateAsync("SendedMailCount", mailCount);
     }
+
+    
 
     #endregion
 
@@ -625,6 +641,117 @@ public class GameManager : MonoBehaviour
         }
     }
     #endregion
+
+    #region Mail Field
+
+    public void NotificationStatus()
+    {
+        if (unreadedMailCount > 0)
+        {
+            var rect = mailHolder.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(240, 150 * unreadedMailCount);
+            mainNotification.SetActive(true);
+            mailNotification.SetActive(true);
+        }
+        else
+        {
+            mainNotification.SetActive(false);
+            mailNotification.SetActive(false);
+        }
+    }
+    public void SendGold()
+    {
+        string info = "Gold Ödülü.";
+        string sender = "Kurucu";
+        int prizePiece = 100;
+        SendGift(info, sender, RewardTypes.gold, prizePiece);
+    }
+    public void SendEmerald()
+    {
+        string info = "Emerald Ödülü.";
+        string sender = "Kurucu";
+        int prizePiece = 100;
+        SendGift(info, sender, RewardTypes.emerald, prizePiece);
+
+    }
+    public void SendGift(string info, string sender,RewardTypes rewardType, int prizePiece)
+    {
+        int mailname = UnityEngine.Random.Range(0,1000000);
+        SendMail(sender,info, rewardType, prizePiece, mailname);
+    }
+
+    public void SendMail(string sender, string info,RewardTypes rewardType,int howManyPieceWillGift,int mailId)
+    {        
+        unreadedMailCount++;
+        DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId).Collection("Mails").Document(mailId.ToString());
+        Mails mail = new Mails
+        {
+            Sender = sender,
+            Info = info,
+            RewardType = rewardType,
+            PieceReward = howManyPieceWillGift,
+            MailID = mailId
+        };
+        docRef.SetAsync(mail);
+        mailSender = sender;
+        mailInfo = info;
+        rewardPiece = howManyPieceWillGift;
+        mailID = mailId;
+        GameObject mailPref = Instantiate(mailPrefab, mailHolder.transform);
+        mailPref.name = mailId.ToString();
+        mailPref.transform.Find("mailFromSender").GetComponentInChildren<TextMeshProUGUI>().text = mailSender;
+        mailPref.GetComponent<Button>().onClick.AddListener(delegate { DetailedMailOpen(mailSender, mailInfo, goldSprite, rewardPiece, RewardTypes.gold, mailID); });
+        NotificationStatus();
+
+    }
+    public void DetailedMailOpen(string sender, string info, Sprite mailRewardtype, int rewardPeice, RewardTypes r, int mailId)
+    {
+        unreadedMailCount--;
+        if (GameObject.Find(mailId + "(1)") != null)
+        {
+            Destroy(GameObject.Find(mailId + "(1)"));
+        }
+        GameObject dMailPref = Instantiate(detailedMailBgPref, detailedMailBg.transform);
+        dMailPref.name = mailId + "(1)";
+        dMailPref.transform.Find("mailSenderInfo").GetComponentInChildren<TextMeshProUGUI>().text = sender;
+        dMailPref.transform.Find("mailInfo").GetComponentInChildren<TextMeshProUGUI>().text = info;
+        dMailPref.transform.Find("rewardType").GetComponentInChildren<Image>().sprite = mailRewardtype;
+        dMailPref.transform.Find("rewardPiece").GetComponentInChildren<TextMeshProUGUI>().text = rewardPeice.ToString();
+        var collectButton = dMailPref.transform.Find("collectButton").GetComponentInChildren<Button>();
+        collectButton.onClick.AddListener(delegate { GetRewardPiece(rewardPeice, r, mailId); });
+        NotificationStatus();
+        Debug.Log("Opened Mails number is : " + mailId);
+
+    }
+    public void GetRewardPiece(int piece, RewardTypes rewardType, int mailid)
+    {        
+        if (rewardType == RewardTypes.gold)
+        {
+            GiveCoin(piece);
+        }
+        else if (rewardType == RewardTypes.emerald)
+        {
+            GiveEmerald(piece);
+        }
+        NotificationStatus();
+        DeleteMail(mailid);
+        Destroy(GameObject.Find(mailid + "(1)"));
+        Destroy(GameObject.Find(mailid.ToString()));
+        Debug.Log("Destroying  Mail with id : " + mailid);
+    }
+    public void SetInfoForMail(string info)
+    {
+        mailInfo = info;
+    }
+    public void DeleteMail(int number)
+    {
+        DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId).Collection("Mails").Document((number).ToString());
+        docRef.DeleteAsync();
+        Debug.Log("Deleted Mails number is : " + number);
+    }
+    #endregion
+
+    #region Panel Management
 
     public void PanelChange(PanelType panel)
     {
@@ -724,33 +851,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    #endregion
 
-    public void SetInfoForMail(string info)
-    {
-        mailInfo = info;
-    }
-    public void SendEmeraldMail(int piece)
-    {
-        mailCounts++;
-        SaveMailCount(mailCounts);
-        DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId).Collection("Mails").Document(mailCounts.ToString());
-        Mails mail = new Mails
-        {
-            Sender = "Sistem",
-            Info = mailInfo,
-            RewardType = RewardTypes.emerald,
-            PieceReward = piece,
-            MailNumber = mailCounts
-            
-        };
-        docRef.SetAsync(mail);
-        mailSystem.SendEmeraldMail(piece);
-    }
-    public void DeleteMail(int number)
-    {
-        DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId).Collection("Mails").Document(number.ToString());
-        docRef.DeleteAsync();
-    }
+    
 }
 
 
@@ -792,7 +895,7 @@ public class Mails
     public int PieceReward { get; set; }
 
     [FirestoreProperty]
-    public int MailNumber { get; set; }
+    public int MailID { get; set; }
 
 }
 
@@ -801,22 +904,6 @@ public class UserDataClass
 {
     [FirestoreProperty]
     public float Patch { get; private set; }
-
-    public class Mails
-    {
-        [FirestoreProperty]
-        public string Sender { get; set; }
-
-        [FirestoreProperty]
-        public RewardTypes RewardType { get; set; }
-
-        [FirestoreProperty]
-        public string Info { get; set; }
-
-        [FirestoreProperty]
-        public int PieceReward { get; set; }
-
-    }
 
     [FirestoreProperty]
     public string Username { get; set; }

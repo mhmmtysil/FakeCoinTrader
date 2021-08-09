@@ -44,7 +44,7 @@ public class InogamiCoin : MonoBehaviour
         }
         else
         {
-            if (coin.unlockPrice <= GameManager.Instance.Coin)
+            if (coin.unlockPrice <= GameManager.Instance.Emerald)
             {
                 lockedButton.image.sprite = canBeOpened;
                 lockedIcon.sprite = orangeLocked;
