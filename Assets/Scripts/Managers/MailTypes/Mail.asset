@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dab946e68013351488ca9fc1d9c89863, type: 3}
+  m_Name: Mail
+  m_EditorClassIdentifier: 
+  mailSender: Sistem
+  mailInfo: "Oyun Hakk\u0131nda Geli\u015Ftirmemizi \u0130stedi\u011Fin Yerleri Ma\u011Fazan\u0131n
+    Yorum K\u0131sm\u0131nda Belirtmen Yeterli.!"
+  mailStatus: 1
+  rewardPiece: 100

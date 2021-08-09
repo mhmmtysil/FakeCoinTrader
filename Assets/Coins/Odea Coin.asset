@@ -18,5 +18,7 @@ MonoBehaviour:
   diggingSpeed: 30
   isOpened: 0
   isHired: 0
-  unlockPrice: 1500
+  unlockPrice: 3000
   canBeOpened: 0
+  hirePerClickedDefault: 4
+  diggingSpeedDefault: 30

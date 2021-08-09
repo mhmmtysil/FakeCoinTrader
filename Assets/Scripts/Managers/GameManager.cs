@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Panel[] panels;
 
+
     [Header("Loading Screen")]
     public GameObject loadingScreen;
     public GameObject loadingText;
@@ -40,6 +41,7 @@ public class GameManager : MonoBehaviour
     [Header("Exp Fied")]
     public TextMeshProUGUI expText;
     public TextMeshProUGUI levelText;
+    public TextMeshProUGUI levelTextSettings;
     public Slider expSlider;
     public GameObject levelUp;
     [HideInInspector] public long exp;
@@ -78,6 +80,13 @@ public class GameManager : MonoBehaviour
     private int griffonCoin;
     public int GriffonCoin { get { return griffonCoin; } set { griffonCoin = value; } }
 
+    [Header("Emerald")]
+    private int emerald; 
+    public int Emerald{ get { return emerald; } set { emerald = value; }}
+
+    [Header("Coin")]
+    private int coin;
+    public int Coin { get { return coin; } set { coin = value; } }
 
     [Header("User Input Fields")]
     public TMP_InputField userMailInputField;
@@ -91,15 +100,9 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI emeraldBalanceText;
     public TextMeshProUGUI usernameText;
 
-    [Header("Emerald")]
-    private int emerald; 
-    public int Emerald{ get { return emerald; } set { emerald = value; }}
 
-    [Header("Coin")]
-    private int coin;
-    public int Coin { get { return coin; } set { coin = value; } }
-
-
+    
+    //OpenStatusField
     [HideInInspector] public bool fakeCoinOpened;
     [HideInInspector] public bool horsePowerOpened;
     [HideInInspector] public bool lightCoreOpened;
@@ -107,6 +110,7 @@ public class GameManager : MonoBehaviour
     [HideInInspector] public bool inogamiCoinOpened;
     [HideInInspector] public bool griffonCoinOpened;
 
+    //Hire Status Field
     [HideInInspector] public bool fakeCoinHired;
     [HideInInspector] public bool horsePowerHired;
     [HideInInspector] public bool lightCoreHired;
@@ -121,6 +125,14 @@ public class GameManager : MonoBehaviour
     private Sprite avatarChoosed;
     private int avatarNum;
     public Sprite[] avatarList;
+
+    public CoinStatus coinStatus;
+
+    public MailSystem mailSystem;
+    int mailCounts;
+    string mailInfo;
+    public int mailNumber; 
+
 
     
 
@@ -140,7 +152,7 @@ public class GameManager : MonoBehaviour
     #region Firebase Field
     public void InitializeFirebase()
     {
-
+        mailCounts = PlayerPrefs.GetInt("MailCount");
         db = FirebaseFirestore.DefaultInstance;
         auth = FirebaseAuth.DefaultInstance;
         auth.StateChanged += AuthStateChanged;
@@ -192,6 +204,7 @@ public class GameManager : MonoBehaviour
     public void SignOut()
     {
         auth.SignOut();
+        coinStatus.Instance.SetDefaults();
     }
 
     void AuthStateChanged(object sender, System.EventArgs eventArgs)
@@ -209,6 +222,16 @@ public class GameManager : MonoBehaviour
             user = auth.CurrentUser;
             if (signedIn)
             {
+                DocumentReference mailRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
+                mailRef.GetSnapshotAsync().ContinueWithOnMainThread((task) =>
+                {
+                    var snapshot = task.Result;
+                    if (snapshot.Exists && task.IsCompleted)
+                    {
+                        MailCount mailcount = snapshot.ConvertTo<MailCount>();
+                        mailCounts = mailcount.mailCount;
+                    }
+                });
                 DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
                 docRef.GetSnapshotAsync().ContinueWithOnMainThread((task) =>
                 {
@@ -240,6 +263,8 @@ public class GameManager : MonoBehaviour
                         inogamiCoinOpened = user.InogamiCoinOpened;
                         griffonCoinOpened = user.InogamiCoinOpened;
 
+
+
                         fakeCoinHired = user.FakeCoinHired;
                         horsePowerHired = user.HorsePowerHired;
                         lightCoreHired = user.LightCoreHired;
@@ -251,6 +276,7 @@ public class GameManager : MonoBehaviour
                         ConvertExpText();
                         expSlider.value = Convert.ToSingle(exp / maxExp);
                         levelText.text = level.ToString();
+                        levelTextSettings.text = level.ToString();
                         coinBalanceText.text = coin.ToString();
                         emeraldBalanceText.text = emerald.ToString();
 
@@ -261,9 +287,10 @@ public class GameManager : MonoBehaviour
                         }
                         else
                         {
-                            untakenLevelReward = 10;
+                            untakenLevelReward = 0;
                             untakenLevelRewardText.text = "x10";
                             PanelChange(PanelType.MainMenu);
+                            coinStatus.Instance.GetStatus();
                             signInPanel.SetActive(false);
                             signUpPanel.SetActive(false);
                             setUsernamePanel.SetActive(true);
@@ -278,8 +305,7 @@ public class GameManager : MonoBehaviour
                         signUpPanel.SetActive(false);
                         setUsernamePanel.SetActive(true);
                     }
-                });
-                userMailText.text = "Kullanıcı Mail Adresi : " + Environment.NewLine + user.Email;                
+                });              
             }
             else
             {
@@ -287,32 +313,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-    #region UserName Warning Field
-
-    IEnumerator UserNameTextLengthCount(string warningText)
-    {
-        usernameWarningText.text = warningText;
-        usernameIF.text = "";
-        yield return new WaitForSeconds(2);
-        usernameWarningText.text = "";
-    }
-
-    #endregion
-
     public void SaveUserDatas()
     {
         username = usernameIF.text;
         Debug.Log("Username Length is : " + username.Length);
-        if (username.Length<=4)
+        if (username.Length <= 4)
         {
-            StartCoroutine(UserNameTextLengthCount("Kullanıcı adı 4 karakterden büyük olmalıdır."+ Environment.NewLine + "Tekrar Deneyin."));
+            StartCoroutine(UserNameTextLengthCount("Kullanıcı adı 4 karakterden büyük olmalıdır." + Environment.NewLine + "Tekrar Deneyin."));
         }
         if (username.Length >= 15)
         {
             StartCoroutine(UserNameTextLengthCount("Kullanıcı adı 15 karakterden küçük olmalıdır." + Environment.NewLine + "Tekrar Deneyin."));
         }
-        if(username.Length > 4 && username.Length < 15)
+        if (username.Length > 4 && username.Length < 15)
         {
             StartCoroutine(UserNameTextLengthCount("Kayıt Başarılı." + Environment.NewLine + "Yönlendiriliyorsunuz."));
             DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
@@ -331,6 +344,7 @@ public class GameManager : MonoBehaviour
                 InogamiCoin = 0,
                 GriffonCoin = 0,
                 UnTakenRewardForLevel = 0,
+
 
                 FakeCoinOpened = true,
                 HorsePowerOpened = false,
@@ -394,6 +408,8 @@ public class GameManager : MonoBehaviour
                         else
                         {
                             PanelChange(PanelType.NewUser);
+                            coinStatus.Instance.GetStatus();
+                            coinStatus.Instance.SetDefaults();
                             signInPanel.SetActive(false);
                             signUpPanel.SetActive(false);
                             setUsernamePanel.SetActive(true);
@@ -402,6 +418,7 @@ public class GameManager : MonoBehaviour
                         ConvertExpText();
                         expSlider.value = Convert.ToSingle(exp / maxExp);
                         levelText.text = level.ToString();
+                        levelTextSettings.text = level.ToString();
                         coinBalanceText.text = coin.ToString();
                         emeraldBalanceText.text = emerald.ToString();
                     });
@@ -409,8 +426,20 @@ public class GameManager : MonoBehaviour
             });
 
         }
-        
+
     }
+
+    #region UserName Warning Field
+
+    IEnumerator UserNameTextLengthCount(string warningText)
+    {
+        usernameWarningText.text = warningText;
+        usernameIF.text = "";
+        yield return new WaitForSeconds(2);
+        usernameWarningText.text = "";
+    }
+
+    #endregion   
 
     #endregion
 
@@ -443,6 +472,11 @@ public class GameManager : MonoBehaviour
         DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
         userRef.UpdateAsync(coinName + "Hired", true);
     }
+    public void SetCoinDiggingSpeed(string coinName, float value)
+    {
+        DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
+        userRef.UpdateAsync(coinName + "DiggingSpeed", value);
+    }
 
     public void SetUntakenLevelReward(int r)
     {
@@ -471,6 +505,7 @@ public class GameManager : MonoBehaviour
     {
         level += value;
         levelText.text = level.ToString();
+        levelTextSettings.text = level.ToString();
         maxExp += level * 100;
         UpdateMaxExp();
     }
@@ -505,6 +540,12 @@ public class GameManager : MonoBehaviour
         DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
         userRef.UpdateAsync("MaxExp", maxExp);
         userRef.UpdateAsync("Level", level);
+    }
+    void SaveMailCount(int mailCount)
+    {
+        mailSystem.mailNumber = mailCount;
+        DocumentReference userRef = db.Collection("Mails").Document("SendedMails");
+        userRef.UpdateAsync("SendedMailCount", mailCount);
     }
 
     #endregion
@@ -682,7 +723,36 @@ public class GameManager : MonoBehaviour
                 break;
         }
     }
+
+
+    public void SetInfoForMail(string info)
+    {
+        mailInfo = info;
+    }
+    public void SendEmeraldMail(int piece)
+    {
+        mailCounts++;
+        SaveMailCount(mailCounts);
+        DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId).Collection("Mails").Document(mailCounts.ToString());
+        Mails mail = new Mails
+        {
+            Sender = "Sistem",
+            Info = mailInfo,
+            RewardType = RewardTypes.emerald,
+            PieceReward = piece,
+            MailNumber = mailCounts
+            
+        };
+        docRef.SetAsync(mail);
+        mailSystem.SendEmeraldMail(piece);
+    }
+    public void DeleteMail(int number)
+    {
+        DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId).Collection("Mails").Document(number.ToString());
+        docRef.DeleteAsync();
+    }
 }
+
 
 public enum PanelType
 {
@@ -697,9 +767,56 @@ public enum PanelType
     Loading
 }
 
+public class MailCount
+{
+    public int mailCount;
+        public MailCount(int mailCount)
+        {
+        this.mailCount = mailCount;
+        }
+}
+//-*-*-*-*-*-*-*-*-*-*-*- Mail Properties -*-*-*-*-*-*-*-*-*-*-*-
+[FirestoreData]
+public class Mails
+{
+    [FirestoreProperty]
+    public string Sender { get; set; }
+
+    [FirestoreProperty]
+    public RewardTypes RewardType { get; set; }
+
+    [FirestoreProperty]
+    public string Info { get; set; }
+
+    [FirestoreProperty]
+    public int PieceReward { get; set; }
+
+    [FirestoreProperty]
+    public int MailNumber { get; set; }
+
+}
+
 [FirestoreData]
 public class UserDataClass
 {
+    [FirestoreProperty]
+    public float Patch { get; private set; }
+
+    public class Mails
+    {
+        [FirestoreProperty]
+        public string Sender { get; set; }
+
+        [FirestoreProperty]
+        public RewardTypes RewardType { get; set; }
+
+        [FirestoreProperty]
+        public string Info { get; set; }
+
+        [FirestoreProperty]
+        public int PieceReward { get; set; }
+
+    }
 
     [FirestoreProperty]
     public string Username { get; set; }
@@ -717,9 +834,10 @@ public class UserDataClass
 
     [FirestoreProperty]
     public int UnTakenRewardForLevel { get; set; }
-    [FirestoreProperty]
+
 
     // --------------------- Coin Balances Properties ---------------------
+    [FirestoreProperty]
     public int FakeCoin { get; set; }
     [FirestoreProperty]
     public int HorsePower { get; set; }
@@ -731,6 +849,7 @@ public class UserDataClass
     public int InogamiCoin { get; set; }
     [FirestoreProperty]
     public int GriffonCoin { get; set; }
+
 
     // --------------------- Opened Status Properties ---------------------
     [FirestoreProperty]
@@ -745,6 +864,7 @@ public class UserDataClass
     public bool InogamiCoinOpened { get; set; }
     [FirestoreProperty]
     public bool GriffonCoinOpened { get; set; }
+
 
 
     // --------------------- Hired Status Properties ---------------------

@@ -4,25 +4,21 @@ using UnityEngine;
 
 public class HirePanel : MonoBehaviour
 {
-    public GriffonCoin griffonCoin;
+    public FakeCoin fakeCoin;
     public HorseCoin horseCoin;
-    public InogamiCoin inogamiCoin;
     public LightCore lightCore;
     public OdeaCoin odeaCoin;
+    public InogamiCoin inogamiCoin;
+    public GriffonCoin griffonCoin;
 
     public void OpenHirePanel()
     {
-        griffonCoin.CheckLockStatus();
-        horseCoin.CheckLockStatus();
-        inogamiCoin.CheckLockStatus();
-        lightCore.CheckLockStatus();
-        odeaCoin.CheckLockStatus();
-
-        griffonCoin.CheckHireStatus();
+        fakeCoin.CheckHireStatus();
         horseCoin.CheckHireStatus();
-        inogamiCoin.CheckHireStatus();
         lightCore.CheckHireStatus();
         odeaCoin.CheckHireStatus();
+        inogamiCoin.CheckHireStatus();
+        griffonCoin.CheckHireStatus();
 
         gameObject.SetActive(true);
     }

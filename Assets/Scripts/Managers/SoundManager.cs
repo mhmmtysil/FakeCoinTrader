@@ -15,8 +15,9 @@ public class SoundManager : MonoBehaviour
 	[SerializeField] private AudioClip coinProduceFinished;
 	[SerializeField] private AudioClip hired;
 	[SerializeField] private AudioClip levelUp;
+	[SerializeField] private AudioClip speededUp;
 
-	private void Start()
+    private void Start()
     {
         if (Instance != null)
         {
@@ -41,13 +42,16 @@ public class SoundManager : MonoBehaviour
                 EffectsSource.PlayOneShot(buttonClick);
                 break;
             case SoundType.CoinProduceFinished:
-                EffectsSource.PlayOneShot(buttonClick);
+                EffectsSource.PlayOneShot(coinProduceFinished);
                 break;
             case SoundType.Hired:
                 EffectsSource.PlayOneShot(hired);
                 break;
             case SoundType.LevelUp:
                 EffectsSource.PlayOneShot(levelUp);
+                break;
+            case SoundType.SpeededUp:
+                EffectsSource.PlayOneShot(speededUp);
                 break;
         }
     }
@@ -70,6 +74,7 @@ public class SoundManager : MonoBehaviour
 public enum SoundType
 {
 	ButtonClick,
+    SpeededUp,
 	Game,
 	CoinProduceFinished,
 	Hired,

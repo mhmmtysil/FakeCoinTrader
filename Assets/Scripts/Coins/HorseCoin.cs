@@ -1,54 +1,42 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using TMPro;
 using System;
+using static SoundManager;
+
 
 public class HorseCoin : MonoBehaviour
 {
     public ScriptableCoin coin;
+
+    [Header("Digging Panel")]
     public TextMeshProUGUI coinBalanceText;
-    public TextMeshProUGUI coinBalanceTradePanelText;
     public TextMeshProUGUI coinPerMinuteText;
     public GameObject hiredText;
-
     public Button digButton;
-    public Button hirePanelHireButton;
-    public GameObject hirePanelHiredButton;
-    public Button lockedButton;
-    public GameObject lockedImageHirePanel;
     public Image lockedIcon;
     public Sprite grayLocked;
     public Sprite orangeLocked;
-    public GameObject lockedHireImage;
-
+    public Button lockedButton;
     public Slider coinSlider;
-
     public Sprite canBeOpened;
     public Sprite cannotBeOpened;
-
     public Animator anim;
-    int second;
+
+    [Header("Hire Panel")]
+    public TextMeshProUGUI coinBalanceTradePanelText;
+    public Button hirePanelHireButton;
+    public GameObject hirePanelHiredButton;
+    public GameObject lockedImageHirePanel;
+    public GameObject lockedHireImage;
+
 
     public GameObject nextCoin;
 
 
     private void FixedUpdate()
     {
-        if (coin.unlockPrice <= GameManager.Instance.Coin)
-        {
-            lockedButton.image.sprite = canBeOpened;
-            lockedIcon.sprite = orangeLocked;
-            lockedButton.interactable = true;
-        }
-        else
-        {
-            lockedButton.image.sprite = cannotBeOpened;
-            lockedIcon.sprite = grayLocked;
-            lockedButton.interactable = false;
-        }
         if (coin.isOpened)
         {
             nextCoin.SetActive(true);
@@ -56,15 +44,21 @@ public class HorseCoin : MonoBehaviour
         }
         else
         {
+            if (coin.unlockPrice <= GameManager.Instance.Coin)
+            {
+                lockedButton.image.sprite = canBeOpened;
+                lockedIcon.sprite = orangeLocked;
+                lockedButton.interactable = true;
+            }
+            else
+            {
+                lockedButton.image.sprite = cannotBeOpened;
+                lockedIcon.sprite = grayLocked;
+                lockedButton.interactable = false;
+            }
             nextCoin.SetActive(false);
             lockedImageHirePanel.SetActive(true);
         }
-    }
-
-
-    private void OnEnable()
-    {
-        StartCoroutine(GetInfos());
     }
 
     public void UnlockCoin(int price)
@@ -75,13 +69,21 @@ public class HorseCoin : MonoBehaviour
         nextCoin.SetActive(true);
         lockedImageHirePanel.SetActive(false);
         lockedButton.gameObject.SetActive(false);
+        nextCoin.SetActive(true);
+        lockedImageHirePanel.SetActive(false);
+        lockedButton.gameObject.SetActive(false);
+    }
+    public void SetDefault()
+    {
+        coin.coinBalance = 0;
+        coin.diggingSpeed = coin.diggingSpeedDefault;
+        coin.hirePerClicked = coin.hirePerClickedDefault;
+        coin.isHired = false;
+        coin.isOpened = false;
     }
 
-
-    IEnumerator GetInfos()
+    public void GetInfos()
     {
-        second = (int)coin.diggingSpeed;
-        yield return new WaitForSeconds(1);
         coin.coinBalance = GameManager.Instance.HorsePower;
         coin.isHired = GameManager.Instance.horsePowerHired;
         coin.isOpened = GameManager.Instance.horsePowerOpened;
@@ -94,13 +96,15 @@ public class HorseCoin : MonoBehaviour
         }
     }
 
-    public void CoinsDiggingSpeedDoubler()
+    public void CoinsDiggingSpeedDoubler(int price)
     {
-        coin.diggingSpeed /= 2;
-        second = (int)coin.diggingSpeed;
-        TimeSpan result = TimeSpan.FromSeconds(second);
-        string fromTimeString = result.ToString("mm':'ss");
-        coinPerMinuteText.text = fromTimeString;
+        if (price <= GameManager.Instance.Emerald)
+        {
+            if (coin.diggingSpeed / 2 > 0)
+            {
+                coin.diggingSpeed /= 2;
+            }
+        }
     }
 
     public void CheckLockStatus()
@@ -115,7 +119,7 @@ public class HorseCoin : MonoBehaviour
         {
             nextCoin.SetActive(false);
             lockedImageHirePanel.SetActive(true);
-            lockedButton.gameObject.SetActive(true);           
+            lockedButton.gameObject.SetActive(true);
         }
     }
 
@@ -136,6 +140,7 @@ public class HorseCoin : MonoBehaviour
             digButton.gameObject.SetActive(true);
         }
     }
+
     public void Hire(int price)
     {
         if (price <= GameManager.Instance.Emerald)
@@ -145,6 +150,7 @@ public class HorseCoin : MonoBehaviour
             GameManager.Instance.SetCoinHired(coin.coinName);
             coin.isHired = true;
             CheckHireStatus();
+            HiredUpdate();
         }
         else
         {
@@ -160,8 +166,7 @@ public class HorseCoin : MonoBehaviour
 
         if (!coin.isHired)
         {
-            second = (int)coin.diggingSpeed;
-            TimeSpan result = TimeSpan.FromSeconds(second);
+            TimeSpan result = TimeSpan.FromSeconds(coin.diggingSpeed);
             string fromTimeString = result.ToString("mm':'ss");
             coinPerMinuteText.text = fromTimeString;
         }
@@ -172,6 +177,7 @@ public class HorseCoin : MonoBehaviour
 
         GameManager.Instance.UpdateCoinsText(coin.coinName, coin.coinBalance);
     }
+
     public void GiveCoin()
     {
         coin.coinBalance++;
@@ -205,6 +211,7 @@ public class HorseCoin : MonoBehaviour
             coinBalanceTradePanelText.GetComponent<Animator>().SetTrigger("notEnough");
         }
     }
+
     public void TradeWithEmerald(int amount)
     {
         if (coin.coinBalance >= amount)
@@ -214,50 +221,50 @@ public class HorseCoin : MonoBehaviour
             GameManager.Instance.GiveEmerald(10);
         }
     }
+
+
+    void HiredUpdate()
+    {
+        if (coin.isHired)
+        {
+            UpdateSliderValue();
+        }
+    }
     public void UpdateSliderValue()
     {
-        StartCoroutine(AnimateSliderOverTime());
+        StartCoroutine(StartDigging(coin.diggingSpeed));
     }
-    IEnumerator AnimateSliderOverTime()
+
+    IEnumerator StartDigging(float diggingspeed)
     {
-        anim.enabled = true;
-        anim.SetTrigger("producing");
         float animationTime = 0f;
-        float countDownTo = coin.diggingSpeed;
-        while (animationTime < coin.diggingSpeed)
+        float second = coin.diggingSpeed;
+        anim.SetTrigger("producing");
+        while (animationTime < diggingspeed)
         {
             animationTime += Time.deltaTime;
-            countDownTo -= Time.deltaTime;
-            int second = Mathf.RoundToInt(countDownTo);
-            if (countDownTo > 0)
-            {
-                TimeSpan result = TimeSpan.FromSeconds(second);
-                string fromTimeString = result.ToString("mm':'ss");
-                coinPerMinuteText.text = fromTimeString;
-            }
-            float lerpValue = animationTime / coin.diggingSpeed;
-            coinSlider.value = Mathf.Lerp(0, 1f, lerpValue);
+            second -= Time.deltaTime;
+            float lerpValue = animationTime / diggingspeed;
+            coinSlider.value = Mathf.Lerp(0f, 1f, lerpValue);
+
+            TimeSpan result = TimeSpan.FromSeconds(second);
+            string fromTimeString = result.ToString("mm':'ss");
+            coinPerMinuteText.text = fromTimeString;
+
             digButton.interactable = false;
-            if (coinSlider.value >= 1)
+
+            if (coinSlider.value == 1)
             {
-                anim.SetTrigger("nonproducing");
                 coinSlider.value = 0;
+                anim.SetTrigger("nonproducing");
                 coin.coinBalance += coin.hirePerClicked;
                 digButton.interactable = true;
-                if (coin.isHired)
-                {
-                    coinSlider.value = 0;
-                    animationTime = 0;
-                    anim.SetTrigger("producing");
-                }
-                else
-                {
-                    anim.SetTrigger("nonproducing");
-                }
                 UpdateCoinBalanceTexts(coin.coinBalance);
                 GameManager.Instance.GiveExp(coin.hirePerClicked);
-                SoundManager.Instance.OnSoundActivated(SoundType.CoinProduceFinished);
+                Instance.OnSoundActivated(SoundType.CoinProduceFinished);
+                HiredUpdate();
             }
+
             yield return null;
         }
     }

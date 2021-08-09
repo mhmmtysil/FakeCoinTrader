@@ -14,4 +14,9 @@ public class ScriptableCoin : ScriptableObject
     public bool isHired;
     public int unlockPrice;
     public bool canBeOpened;
+
+    [Header("Coin Defaults")]
+    public int hirePerClickedDefault;
+    public float diggingSpeedDefault;
+
 }

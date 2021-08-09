@@ -1,9 +1,9 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using static SoundManager;
 
 public class OdeaCoin : MonoBehaviour
 {
@@ -16,8 +16,8 @@ public class OdeaCoin : MonoBehaviour
     public Button digButton;
     public Button hirePanelHireButton;
     public GameObject hirePanelHiredButton;
-    public GameObject lockedImageHirePanel;
     public Button lockedButton;
+    public GameObject lockedImageHirePanel;
     public Image lockedIcon;
     public Sprite grayLocked;
     public Sprite orangeLocked;
@@ -48,31 +48,30 @@ public class OdeaCoin : MonoBehaviour
             lockedIcon.sprite = grayLocked;
             lockedButton.interactable = false;
         }
-        if (coin.isOpened)
-        {
-            nextCoin.SetActive(true);
-            lockedImageHirePanel.SetActive(false);
-        }
-        else
-        {
-            nextCoin.SetActive(false);
-            lockedImageHirePanel.SetActive(true);
-        }
-        CheckHireStatus();
     }
 
-
-    private void OnEnable()
+    public void UnlockCoin(int price)
     {
-        StartCoroutine(GetInfos());
+        coin.isOpened = true;
+        GameManager.Instance.BuyWithCoin(price);
+        GameManager.Instance.SetCoinUnlock(coin.coinName);
+        nextCoin.SetActive(true);
+        lockedImageHirePanel.SetActive(false);
+        lockedButton.gameObject.SetActive(false);
+        CheckLockStatus();
+    }
+    public void SetDefault()
+    {
+        coin.coinBalance = 0;
+        coin.diggingSpeed = coin.diggingSpeedDefault;
+        coin.hirePerClicked = coin.hirePerClickedDefault;
+        coin.isHired = false;
+        coin.isOpened = false;
     }
 
-
-
-    IEnumerator GetInfos()
+    public void GetInfos()
     {
         second = (int)coin.diggingSpeed;
-        yield return new WaitForSeconds(1);
         coin.coinBalance = GameManager.Instance.OdeaCoin;
         coin.isHired = GameManager.Instance.odeaCoinHired;
         coin.isOpened = GameManager.Instance.odeaCoinOpened;
@@ -85,23 +84,29 @@ public class OdeaCoin : MonoBehaviour
         }
     }
 
-    public void CoinsDiggingSpeedDoubler()
+    public void CoinsDiggingSpeedDoubler(int price)
     {
-        coin.diggingSpeed /= 2;
-        second = (int)coin.diggingSpeed;
-        TimeSpan result = TimeSpan.FromSeconds(second);
-        string fromTimeString = result.ToString("mm':'ss");
-        coinPerMinuteText.text = fromTimeString;
+        if (price <= GameManager.Instance.Emerald)
+        {
+            if (coin.diggingSpeed / 2 > 0)
+            {
+                coin.diggingSpeed /= 2;
+            }
+        }
     }
 
     public void CheckLockStatus()
     {
         if (coin.isOpened)
         {
+            nextCoin.SetActive(true);
+            lockedImageHirePanel.SetActive(false);
             lockedButton.gameObject.SetActive(false);
         }
         else
         {
+            nextCoin.SetActive(false);
+            lockedImageHirePanel.SetActive(true);
             lockedButton.gameObject.SetActive(true);
         }
     }
@@ -132,21 +137,14 @@ public class OdeaCoin : MonoBehaviour
             GameManager.Instance.SetCoinHired(coin.coinName);
             coin.isHired = true;
             CheckHireStatus();
+            HiredUpdate();
         }
         else
         {
             hirePanelHireButton.GetComponent<Animator>().SetTrigger("notEnough");
         }
     }
-    public void OpenCoin(int price)
-    {
-        if (price <= GameManager.Instance.Coin)
-        {
-            GameManager.Instance.BuyWithCoin(price);
-            lockedButton.gameObject.SetActive(false);
-            GameManager.Instance.SetCoinUnlock(coin.coinName);
-        }
-    }
+
 
     public void UpdateCoinBalanceTexts(int _coinBalance)
     {
@@ -162,6 +160,7 @@ public class OdeaCoin : MonoBehaviour
         }
         else
         {
+            UpdateSliderValue();
             coinPerMinuteText.text = 60 / coin.diggingSpeed * coin.hirePerClicked + "/dakika.";
         }
 
@@ -209,50 +208,48 @@ public class OdeaCoin : MonoBehaviour
             GameManager.Instance.GiveEmerald(10);
         }
     }
+    void HiredUpdate()
+    {
+        if (coin.isHired)
+        {
+            UpdateSliderValue();
+        }
+    }
     public void UpdateSliderValue()
     {
-        StartCoroutine(AnimateSliderOverTime());
+        StartCoroutine(StartDigging(coin.diggingSpeed));
     }
-    IEnumerator AnimateSliderOverTime()
+
+    IEnumerator StartDigging(float diggingspeed)
     {
-        anim.enabled = true;
-        anim.SetTrigger("producing");
         float animationTime = 0f;
-        float countDownTo = coin.diggingSpeed;
-        while (animationTime < coin.diggingSpeed)
+        float second = coin.diggingSpeed;
+        anim.SetTrigger("producing");
+        while (animationTime < diggingspeed)
         {
             animationTime += Time.deltaTime;
-            countDownTo -= Time.deltaTime;
-            int second = Mathf.RoundToInt(countDownTo);
-            if (countDownTo > 0)
-            {
-                TimeSpan result = TimeSpan.FromSeconds(second);
-                string fromTimeString = result.ToString("mm':'ss");
-                coinPerMinuteText.text = fromTimeString;
-            }
-            float lerpValue = animationTime / coin.diggingSpeed;
-            coinSlider.value = Mathf.Lerp(0, 1f, lerpValue);
+            second -= Time.deltaTime;
+            float lerpValue = animationTime / diggingspeed;
+            coinSlider.value = Mathf.Lerp(0f, 1f, lerpValue);
+
+            TimeSpan result = TimeSpan.FromSeconds(second);
+            string fromTimeString = result.ToString("mm':'ss");
+            coinPerMinuteText.text = fromTimeString;
+
             digButton.interactable = false;
-            if (coinSlider.value >= 1)
+
+            if (coinSlider.value == 1)
             {
-                anim.SetTrigger("nonproducing");
                 coinSlider.value = 0;
+                anim.SetTrigger("nonproducing");
                 coin.coinBalance += coin.hirePerClicked;
                 digButton.interactable = true;
-                if (coin.isHired)
-                {
-                    coinSlider.value = 0;
-                    animationTime = 0;
-                    anim.SetTrigger("producing");
-                }
-                else
-                {
-                    anim.SetTrigger("nonproducing");
-                }
                 UpdateCoinBalanceTexts(coin.coinBalance);
                 GameManager.Instance.GiveExp(coin.hirePerClicked);
-                SoundManager.Instance.OnSoundActivated(SoundType.CoinProduceFinished);
+                Instance.OnSoundActivated(SoundType.CoinProduceFinished);
+                HiredUpdate();
             }
+
             yield return null;
         }
     }
