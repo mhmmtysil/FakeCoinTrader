@@ -102,7 +102,6 @@ public class MailSystem : MonoBehaviour
         }
         mailInfoBg.SetActive(false);
         NotificationStatus();
-        GameManager.Instance.DeleteMail(mailNumber);
     }
 }
 public enum RewardTypes

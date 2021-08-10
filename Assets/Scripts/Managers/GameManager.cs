@@ -16,25 +16,6 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Panel[] panels;
 
-    [Header("Mail Fields")]
-
-    public string mailSender;
-    public string mailInfo;
-    public int rewardPiece;
-    public int mailNumber;
-
-    public GameObject mailPrefab;
-    public GameObject mailHolder;
-    public GameObject mailNotification;
-    public GameObject mainNotification;
-    public Sprite emeraldSprite;
-    public Sprite goldSprite;
-    int unreadedMailCount;
-    int mailID;
-
-    [Header("Mail Detailed Info")]
-    public GameObject detailedMailBgPref;
-    public RectTransform detailedMailBg;
 
     [Header("Loading Screen")]
     public GameObject loadingScreen;
@@ -47,8 +28,8 @@ public class GameManager : MonoBehaviour
     FirebaseAuth auth;
     FirebaseUser user;
 
-    [HideInInspector]public string username;
-    public TextMeshProUGUI userMailText;
+    [HideInInspector] public string username;
+    [HideInInspector] public string userMailID;
     [Header("Panels")]
 
     public GameObject signInPanel;
@@ -236,16 +217,6 @@ public class GameManager : MonoBehaviour
             user = auth.CurrentUser;
             if (signedIn)
             {
-                DocumentReference mailRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
-                mailRef.GetSnapshotAsync().ContinueWithOnMainThread((task) =>
-                {
-                    var snapshot = task.Result;
-                    if (snapshot.Exists && task.IsCompleted)
-                    {
-                        MailCount mailcount = snapshot.ConvertTo<MailCount>();
-                        mailNumber = mailcount.mailCount;
-                    }
-                });
                 DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
                 docRef.GetSnapshotAsync().ContinueWithOnMainThread((task) =>
                 {
@@ -555,12 +526,6 @@ public class GameManager : MonoBehaviour
         userRef.UpdateAsync("MaxExp", maxExp);
         userRef.UpdateAsync("Level", level);
     }
-    void SaveMailCount(int mailCount)
-    {
-        mailNumber = mailCount;
-        DocumentReference userRef = db.Collection("Mails").Document("SendedMails");
-        userRef.UpdateAsync("SendedMailCount", mailCount);
-    }
 
     
 
@@ -642,115 +607,6 @@ public class GameManager : MonoBehaviour
     }
     #endregion
 
-    #region Mail Field
-
-    public void NotificationStatus()
-    {
-        if (unreadedMailCount > 0)
-        {
-            var rect = mailHolder.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(240, 150 * unreadedMailCount);
-            mainNotification.SetActive(true);
-            mailNotification.SetActive(true);
-        }
-        else
-        {
-            mainNotification.SetActive(false);
-            mailNotification.SetActive(false);
-        }
-    }
-    public void SendGold()
-    {
-        string info = "Gold Ödülü.";
-        string sender = "Kurucu";
-        int prizePiece = 100;
-        SendGift(info, sender, RewardTypes.gold, prizePiece);
-    }
-    public void SendEmerald()
-    {
-        string info = "Emerald Ödülü.";
-        string sender = "Kurucu";
-        int prizePiece = 100;
-        SendGift(info, sender, RewardTypes.emerald, prizePiece);
-
-    }
-    public void SendGift(string info, string sender,RewardTypes rewardType, int prizePiece)
-    {
-        int mailname = UnityEngine.Random.Range(0,1000000);
-        SendMail(sender,info, rewardType, prizePiece, mailname);
-    }
-
-    public void SendMail(string sender, string info,RewardTypes rewardType,int howManyPieceWillGift,int mailId)
-    {        
-        unreadedMailCount++;
-        DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId).Collection("Mails").Document(mailId.ToString());
-        Mails mail = new Mails
-        {
-            Sender = sender,
-            Info = info,
-            RewardType = rewardType,
-            PieceReward = howManyPieceWillGift,
-            MailID = mailId
-        };
-        docRef.SetAsync(mail);
-        mailSender = sender;
-        mailInfo = info;
-        rewardPiece = howManyPieceWillGift;
-        mailID = mailId;
-        GameObject mailPref = Instantiate(mailPrefab, mailHolder.transform);
-        mailPref.name = mailId.ToString();
-        mailPref.transform.Find("mailFromSender").GetComponentInChildren<TextMeshProUGUI>().text = mailSender;
-        mailPref.GetComponent<Button>().onClick.AddListener(delegate { DetailedMailOpen(mailSender, mailInfo, goldSprite, rewardPiece, RewardTypes.gold, mailID); });
-        NotificationStatus();
-
-    }
-    public void DetailedMailOpen(string sender, string info, Sprite mailRewardtype, int rewardPeice, RewardTypes r, int mailId)
-    {
-        unreadedMailCount--;
-        if (GameObject.Find(mailId + "(1)") != null)
-        {
-            Destroy(GameObject.Find(mailId + "(1)"));
-        }
-        GameObject dMailPref = Instantiate(detailedMailBgPref, detailedMailBg.transform);
-        dMailPref.name = mailId + "(1)";
-        dMailPref.transform.Find("mailSenderInfo").GetComponentInChildren<TextMeshProUGUI>().text = sender;
-        dMailPref.transform.Find("mailInfo").GetComponentInChildren<TextMeshProUGUI>().text = info;
-        dMailPref.transform.Find("rewardType").GetComponentInChildren<Image>().sprite = mailRewardtype;
-        dMailPref.transform.Find("rewardPiece").GetComponentInChildren<TextMeshProUGUI>().text = rewardPeice.ToString();
-        var collectButton = dMailPref.transform.Find("collectButton").GetComponentInChildren<Button>();
-        collectButton.onClick.AddListener(delegate { GetRewardPiece(rewardPeice, r, mailId); });
-        NotificationStatus();
-        Debug.Log("Opened Mails number is : " + mailId);
-
-    }
-    public void GetRewardPiece(int piece, RewardTypes rewardType, int mailid)
-    {        
-        if (rewardType == RewardTypes.gold)
-        {
-            GiveCoin(piece);
-        }
-        else if (rewardType == RewardTypes.emerald)
-        {
-            GiveEmerald(piece);
-        }
-        NotificationStatus();
-        DeleteMail(mailid);
-        Destroy(GameObject.Find(mailid + "(1)"));
-        Destroy(GameObject.Find(mailid.ToString()));
-        Debug.Log("Destroying  Mail with id : " + mailid);
-    }
-    public void SetInfoForMail(string info)
-    {
-        mailInfo = info;
-    }
-    public void DeleteMail(int number)
-    {
-        DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId).Collection("Mails").Document((number).ToString());
-        docRef.DeleteAsync();
-        Debug.Log("Deleted Mails number is : " + number);
-    }
-    #endregion
-
     #region Panel Management
 
     public void PanelChange(PanelType panel)
@@ -766,7 +622,6 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(false);
-                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.MainMenu:
                 panels[0].gameObject.SetActive(false);
@@ -777,7 +632,6 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(false);
-                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.Trade:
                 panels[0].gameObject.SetActive(false);
@@ -788,7 +642,6 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(false);
-                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.Hire:
                 panels[0].gameObject.SetActive(false);
@@ -799,7 +652,6 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(false);
-                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.Shop:
                 panels[0].gameObject.SetActive(false);
@@ -810,7 +662,6 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(false);
-                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.Profile:
                 panels[0].gameObject.SetActive(false);
@@ -821,7 +672,6 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(true);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(false);
-                panels[8].gameObject.SetActive(false);
                 break;            
             case PanelType.Settings:
                 panels[0].gameObject.SetActive(false);
@@ -832,7 +682,6 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(true);
                 panels[7].gameObject.SetActive(false);
-                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.LevelUp:
                 panels[0].gameObject.SetActive(false);
@@ -843,7 +692,6 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(true);
-                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.Loading:
                 panels[8].gameObject.SetActive(true);
@@ -868,35 +716,6 @@ public enum PanelType
     Settings,
     LevelUp,
     Loading
-}
-
-public class MailCount
-{
-    public int mailCount;
-        public MailCount(int mailCount)
-        {
-        this.mailCount = mailCount;
-        }
-}
-//-*-*-*-*-*-*-*-*-*-*-*- Mail Properties -*-*-*-*-*-*-*-*-*-*-*-
-[FirestoreData]
-public class Mails
-{
-    [FirestoreProperty]
-    public string Sender { get; set; }
-
-    [FirestoreProperty]
-    public RewardTypes RewardType { get; set; }
-
-    [FirestoreProperty]
-    public string Info { get; set; }
-
-    [FirestoreProperty]
-    public int PieceReward { get; set; }
-
-    [FirestoreProperty]
-    public int MailID { get; set; }
-
 }
 
 [FirestoreData]
