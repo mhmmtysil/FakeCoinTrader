@@ -50,35 +50,90 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI untakenLevelRewardText;
     int untakenLevelReward;
 
-    [Header("Fake Coin")]
 
+    #region Coin Fields
     private int fakeCoin;
     public int FakeCoin { get { return fakeCoin; } set { fakeCoin = value; } }
-
-
-    [Header("Horse Power Coin")]
 
     private int horsePower;
     public int HorsePower { get { return horsePower; } set { horsePower = value; } }
 
-    [Header("Light Core Coin")]
-
     private int lightCore;
     public int LightCore { get { return lightCore; } set { lightCore = value; } }
 
-    [Header("Odea Coin")]
     private int odeaCoin;
     public int OdeaCoin { get { return odeaCoin; } set { odeaCoin = value; } }
-
-    [Header("Inogami Coin")]
 
     private int inogamiCoin; 
     public int InogamiCoin { get { return inogamiCoin; } set { inogamiCoin = value; } }
 
-    [Header("Griffon Coin")]
-
     private int griffonCoin;
     public int GriffonCoin { get { return griffonCoin; } set { griffonCoin = value; } }
+
+    #endregion
+
+    #region Coin Open Status Fields
+
+    private bool fakeCoinOpened;
+    public bool FakeCoinOpened { get { return fakeCoinOpened; } set { fakeCoinOpened = value; } }
+
+    private bool horsePowerOpened;
+    public bool HorsePowerOpened { get { return horsePowerOpened; } set { horsePowerOpened = value; } }
+
+    private bool lightCoreOpened;
+    public bool LightCoreOpened { get { return lightCoreOpened; } set { lightCoreOpened = value; } }
+
+    private bool odeaCoinOpened;
+    public bool OdeaCoinOpened { get { return odeaCoinOpened; } set { odeaCoinOpened = value; } }
+
+    private bool inogamiCoinOpened;
+    public bool InogamiCoinOpened { get { return inogamiCoinOpened; } set { inogamiCoinOpened = value; } }
+
+    private bool griffonCoinOpened;
+    public bool GriffonCoinOpened { get { return griffonCoinOpened; } set { griffonCoinOpened = value; } }
+
+    #endregion
+
+    #region Coin Hire Fields
+    private bool fakeCoinHired;
+    public bool FakeCoinHired { get { return fakeCoinHired; } set { fakeCoinHired = value; } }
+
+    private bool horsePowerHired;
+    public bool HorsePowerHired { get { return horsePowerHired; } set { horsePowerHired = value; } }
+
+    private bool lightCoreHired;
+    public bool LightCoreHired { get { return lightCoreHired; } set { lightCoreHired = value; } }
+
+    private bool odeaCoinHired;
+    public bool OdeaCoinHired { get { return odeaCoinHired; } set { odeaCoinHired = value; } }
+
+    private bool inogamiCoinHired;
+    public bool InogamiCoinHired { get { return inogamiCoinHired; } set { inogamiCoinHired = value; } }
+
+    private bool griffonCoinHired;
+    public bool GriffonCoinHired { get { return griffonCoinHired; } set { griffonCoinHired = value; } }
+
+    #endregion
+
+    #region Speed Fields
+    private bool fakeCoinSpeeded;
+    public bool FakeCoinSpeeded { get { return fakeCoinSpeeded; } set { fakeCoinSpeeded = value; } }
+
+    private bool horsePowerSpeeded;
+    public bool HorsePowerSpeeded { get { return horsePowerSpeeded; } set { horsePowerSpeeded = value; } }
+
+    private bool lightCoreSpeeded;
+    public bool LightCoreSpeeded { get { return lightCoreSpeeded; } set { lightCoreSpeeded = value; } }
+
+    private bool odeaCoinSpeeded;
+    public bool OdeaCoinSpeeded { get { return odeaCoinSpeeded; } set { odeaCoinSpeeded = value; } }
+
+    private bool inogamiCoinSpeeded;
+    public bool InogamiCoinSpeeded { get { return inogamiCoinSpeeded; } set { inogamiCoinSpeeded = value; } }
+
+    private bool griffonCoinSpeeded;
+    public bool GriffonCoinSpeeded { get { return griffonCoinSpeeded; } set { griffonCoinSpeeded = value; } }
+    #endregion
 
     [Header("Emerald")]
     private int emerald; 
@@ -100,23 +155,6 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI emeraldBalanceText;
     public TextMeshProUGUI usernameText;
 
-
-    
-    //OpenStatusField
-    [HideInInspector] public bool fakeCoinOpened;
-    [HideInInspector] public bool horsePowerOpened;
-    [HideInInspector] public bool lightCoreOpened;
-    [HideInInspector] public bool odeaCoinOpened;
-    [HideInInspector] public bool inogamiCoinOpened;
-    [HideInInspector] public bool griffonCoinOpened;
-
-    //Hire Status Field
-    [HideInInspector] public bool fakeCoinHired;
-    [HideInInspector] public bool horsePowerHired;
-    [HideInInspector] public bool lightCoreHired;
-    [HideInInspector] public bool odeaCoinHired;
-    [HideInInspector] public bool inogamiCoinHired;
-    [HideInInspector] public bool griffonCoinHired;
 
     [Header("Avatars")]
     public GameObject avatarPrefab;
@@ -217,6 +255,7 @@ public class GameManager : MonoBehaviour
             user = auth.CurrentUser;
             if (signedIn)
             {
+                userMailID = auth.CurrentUser.Email.ToString();
                 DocumentReference docRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
                 docRef.GetSnapshotAsync().ContinueWithOnMainThread((task) =>
                 {
@@ -227,6 +266,7 @@ public class GameManager : MonoBehaviour
                         UserDataClass user = snapshot.ConvertTo<UserDataClass>();
 
                         username = user.Username;
+                        
                         exp = user.Exp;
                         maxExp = user.MaxExp;
                         coin = user.Coin;
@@ -255,7 +295,14 @@ public class GameManager : MonoBehaviour
                         lightCoreHired = user.LightCoreHired;
                         odeaCoinHired = user.OdeaCoinHired;
                         inogamiCoinHired = user.InogamiCoinHired;
-                        griffonCoinHired = user.GriffonCoinHired;                        
+                        griffonCoinHired = user.GriffonCoinHired;
+
+                        fakeCoinSpeeded = user.FakeCoinSpeeded;
+                        horsePowerSpeeded = user.HorsePowerSpeeded;
+                        lightCoreSpeeded = user.LightCoreSpeeded;
+                        odeaCoinSpeeded = user.OdeaCoinSpeeded;
+                        inogamiCoinSpeeded = user.InogamiCoinSpeeded;
+                        griffonCoinSpeeded = user.GriffonCoinSpeeded;
 
                         usernameText.text = username;
                         ConvertExpText();
@@ -317,11 +364,13 @@ public class GameManager : MonoBehaviour
             UserDataClass userDataClass = new UserDataClass
             {
                 Username = username,
+
                 Emerald = 100,
                 Coin = 1000,
                 Exp = 0,
                 Level = 1,
                 MaxExp = 50,
+
                 FakeCoin = 0,
                 HorsePower = 0,
                 LightCore = 0,
@@ -329,7 +378,6 @@ public class GameManager : MonoBehaviour
                 InogamiCoin = 0,
                 GriffonCoin = 0,
                 UnTakenRewardForLevel = 0,
-
 
                 FakeCoinOpened = true,
                 HorsePowerOpened = false,
@@ -343,8 +391,14 @@ public class GameManager : MonoBehaviour
                 LightCoreHired = false,
                 OdeaCoinHired = false,
                 InogamiCoinHired = false,
-                GriffonCoinHired = false
+                GriffonCoinHired = false,
 
+                FakeCoinSpeeded = false,
+                HorsePowerSpeeded = false,
+                LightCoreSpeeded = false,
+                OdeaCoinSpeeded = false,
+                InogamiCoinSpeeded = false,
+                GriffonCoinSpeeded = false
             };
             docRef.SetAsync(userDataClass);
 
@@ -383,6 +437,13 @@ public class GameManager : MonoBehaviour
                                 odeaCoinOpened = user.OdeaCoinOpened;
                                 inogamiCoinOpened = user.InogamiCoinOpened;
                                 griffonCoinOpened = user.InogamiCoinOpened;
+
+                                fakeCoinSpeeded = user.FakeCoinSpeeded;
+                                horsePowerSpeeded = user.HorsePowerSpeeded;
+                                lightCoreSpeeded = user.LightCoreSpeeded;
+                                odeaCoinSpeeded = user.OdeaCoinSpeeded;
+                                inogamiCoinSpeeded = user.InogamiCoinSpeeded;
+                                griffonCoinSpeeded = user.GriffonCoinSpeeded;
                             }
                             PanelChange(PanelType.MainMenu);
                             untakenLevelRewardText.text = "x10";
@@ -450,6 +511,12 @@ public class GameManager : MonoBehaviour
     {
         DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
         userRef.UpdateAsync(coinName+"Opened", true);
+    }
+
+    public void SetCoinSpeeded(string coinName)
+    {
+        DocumentReference userRef = db.Collection("Users").Document(auth.CurrentUser.UserId);
+        userRef.UpdateAsync(coinName + "Speeded", true);
     }
 
     public void SetCoinHired(string coinName)
@@ -756,6 +823,19 @@ public class UserDataClass
     [FirestoreProperty]
     public int GriffonCoin { get; set; }
 
+    // --------------------- Coin Speed Properties ---------------------
+    [FirestoreProperty]
+    public bool FakeCoinSpeeded { get; set; }
+    [FirestoreProperty]
+    public bool HorsePowerSpeeded { get; set; }
+    [FirestoreProperty]
+    public bool LightCoreSpeeded { get; set; }
+    [FirestoreProperty]
+    public bool OdeaCoinSpeeded { get; set; }
+    [FirestoreProperty]
+    public bool InogamiCoinSpeeded { get; set; }
+    [FirestoreProperty]
+    public bool GriffonCoinSpeeded { get; set; }
 
     // --------------------- Opened Status Properties ---------------------
     [FirestoreProperty]

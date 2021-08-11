@@ -9,28 +9,29 @@ using static SoundManager;
 public class InogamiCoin : MonoBehaviour
 {
     public ScriptableCoin coin;
+    [Header("Digging Panel")]
     public TextMeshProUGUI coinBalanceText;
-    public TextMeshProUGUI coinBalanceTradePanelText;
     public TextMeshProUGUI coinPerMinuteText;
     public GameObject hiredText;
-
     public Button digButton;
-    public Button hirePanelHireButton;
-    public GameObject hirePanelHiredButton;
-    public Button lockedButton;
-    public GameObject lockedImageHirePanel;
     public Image lockedIcon;
     public Sprite grayLocked;
     public Sprite orangeLocked;
-    public GameObject lockedHireImage;
-
+    public Button lockedButton;
     public Slider coinSlider;
-
     public Sprite canBeOpened;
     public Sprite cannotBeOpened;
-
     public Animator anim;
-    int second;
+
+    [Header("Hire Panel")]
+    public TextMeshProUGUI coinBalanceTradePanelText;
+    public Button hirePanelHireButton;
+    public GameObject hirePanelHiredButton;
+    public GameObject lockedImageHirePanel;
+    public GameObject lockedHireImage;
+
+    [Header("Speed Panel")]
+    public GameObject speedButton;
 
     public GameObject nextCoin;
 
@@ -44,7 +45,7 @@ public class InogamiCoin : MonoBehaviour
         }
         else
         {
-            if (coin.unlockPrice <= GameManager.Instance.Emerald)
+            if (coin.unlockPrice <= GameManager.Instance.Coin)
             {
                 lockedButton.image.sprite = canBeOpened;
                 lockedIcon.sprite = orangeLocked;
@@ -64,7 +65,7 @@ public class InogamiCoin : MonoBehaviour
     public void UnlockCoin(int price)
     {
         coin.isOpened = true;
-        GameManager.Instance.BuyWithEmerald(price);
+        GameManager.Instance.BuyWithCoin(price);
         GameManager.Instance.SetCoinUnlock(coin.coinName);
         nextCoin.SetActive(true);
         lockedImageHirePanel.SetActive(false);
@@ -82,13 +83,14 @@ public class InogamiCoin : MonoBehaviour
 
     public void GetInfos()
     {
-        second = (int)coin.diggingSpeed;
         coin.coinBalance = GameManager.Instance.InogamiCoin;
-        coin.isHired = GameManager.Instance.inogamiCoinHired;
-        coin.isOpened = GameManager.Instance.inogamiCoinOpened;
+        coin.isHired = GameManager.Instance.InogamiCoinHired;
+        coin.isOpened = GameManager.Instance.InogamiCoinOpened;
+        coin.isSpeeded = GameManager.Instance.InogamiCoinSpeeded;
         UpdateCoinBalanceTexts(coin.coinBalance);
         CheckHireStatus();
         CheckLockStatus();
+        CheckSpeededStatus();
         if (coin.isHired)
         {
             UpdateSliderValue();
@@ -99,10 +101,22 @@ public class InogamiCoin : MonoBehaviour
     {
         if (price <= GameManager.Instance.Emerald)
         {
-            if (coin.diggingSpeed / 2 > 0)
-            {
-                coin.diggingSpeed /= 2;
-            }
+            coin.diggingSpeed /= 2;
+            coin.isSpeeded = true;
+            GameManager.Instance.SetCoinSpeeded(coin.coinName);
+            CheckSpeededStatus();
+        }
+    }
+
+    public void CheckSpeededStatus()
+    {
+        if (coin.isSpeeded)
+        {
+            speedButton.SetActive(false);
+        }
+        else
+        {
+            speedButton.SetActive(true);
         }
     }
 
@@ -164,8 +178,7 @@ public class InogamiCoin : MonoBehaviour
 
         if (!coin.isHired)
         {
-            second = (int)coin.diggingSpeed;
-            TimeSpan result = TimeSpan.FromSeconds(second);
+            TimeSpan result = TimeSpan.FromSeconds(coin.diggingSpeed);
             string fromTimeString = result.ToString("mm':'ss");
             coinPerMinuteText.text = fromTimeString;
         }
@@ -216,7 +229,7 @@ public class InogamiCoin : MonoBehaviour
         {
             coin.coinBalance -= amount;
             UpdateCoinBalanceTexts(coin.coinBalance);
-            GameManager.Instance.GiveEmerald(10);
+            GameManager.Instance.GiveEmerald(100);
         }
     }
     void HiredUpdate()
@@ -259,9 +272,8 @@ public class InogamiCoin : MonoBehaviour
                 GameManager.Instance.GiveExp(coin.hirePerClicked);
                 Instance.OnSoundActivated(SoundType.CoinProduceFinished);
                 HiredUpdate();
-            }
-
-            yield return null;
+                yield break;
+            }            
         }
     }
 }

@@ -31,6 +31,8 @@ public class LightCore : MonoBehaviour
     public GameObject lockedImageHirePanel;
     public GameObject lockedHireImage;
 
+    [Header("Speed Panel")]
+    public GameObject speedButton;
 
     public GameObject nextCoin;
 
@@ -83,11 +85,13 @@ public class LightCore : MonoBehaviour
     public void GetInfos()
     {
         coin.coinBalance = GameManager.Instance.LightCore;
-        coin.isHired = GameManager.Instance.lightCoreHired;
-        coin.isOpened = GameManager.Instance.lightCoreOpened;
+        coin.isHired = GameManager.Instance.LightCoreHired;
+        coin.isOpened = GameManager.Instance.LightCoreOpened;
+        coin.isSpeeded = GameManager.Instance.LightCoreSpeeded;
         UpdateCoinBalanceTexts(coin.coinBalance);
         CheckHireStatus();
         CheckLockStatus();
+        CheckSpeededStatus();
         if (coin.isHired)
         {
             UpdateSliderValue();
@@ -98,10 +102,21 @@ public class LightCore : MonoBehaviour
     {
         if (price <= GameManager.Instance.Emerald)
         {
-            if (coin.diggingSpeed / 2 > 0)
-            {
-                coin.diggingSpeed /= 2;
-            }
+            coin.diggingSpeed /= 2;
+            coin.isSpeeded = true;
+            GameManager.Instance.SetCoinSpeeded(coin.coinName);
+            CheckSpeededStatus();
+        }
+    }
+    public void CheckSpeededStatus()
+    {
+        if (coin.isSpeeded)
+        {
+            speedButton.SetActive(false);
+        }
+        else
+        {
+            speedButton.SetActive(true);
         }
     }
 
@@ -196,8 +211,8 @@ public class LightCore : MonoBehaviour
         {
             coin.coinBalance -= amount;
             UpdateCoinBalanceTexts(coin.coinBalance);
-            GameManager.Instance.GiveCoin(100);
-            GameManager.Instance.GiveExp(100);
+            GameManager.Instance.GiveCoin(300);
+            GameManager.Instance.GiveExp(300);
         }
         else
         {
@@ -244,7 +259,7 @@ public class LightCore : MonoBehaviour
             digButton.interactable = false;
 
             if (coinSlider.value == 1)
-            {
+            {                
                 coinSlider.value = 0;
                 anim.SetTrigger("nonproducing");
                 coin.coinBalance += coin.hirePerClicked;
@@ -253,9 +268,8 @@ public class LightCore : MonoBehaviour
                 GameManager.Instance.GiveExp(coin.hirePerClicked);
                 Instance.OnSoundActivated(SoundType.CoinProduceFinished);
                 HiredUpdate();
-            }
-
-            yield return null;
+                yield break;
+            }            
         }
     }
 }

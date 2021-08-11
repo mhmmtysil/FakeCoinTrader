@@ -31,7 +31,8 @@ public class HorseCoin : MonoBehaviour
     public GameObject lockedImageHirePanel;
     public GameObject lockedHireImage;
 
-
+    [Header("Speed Panel")]
+    public GameObject speedButton;
     public GameObject nextCoin;
 
 
@@ -85,11 +86,13 @@ public class HorseCoin : MonoBehaviour
     public void GetInfos()
     {
         coin.coinBalance = GameManager.Instance.HorsePower;
-        coin.isHired = GameManager.Instance.horsePowerHired;
-        coin.isOpened = GameManager.Instance.horsePowerOpened;
+        coin.isHired = GameManager.Instance.HorsePowerHired;
+        coin.isOpened = GameManager.Instance.HorsePowerOpened;
+        coin.isSpeeded = GameManager.Instance.HorsePowerSpeeded;
         UpdateCoinBalanceTexts(coin.coinBalance);
         CheckHireStatus();
         CheckLockStatus();
+        CheckSpeededStatus();
         if (coin.isHired)
         {
             UpdateSliderValue();
@@ -100,10 +103,22 @@ public class HorseCoin : MonoBehaviour
     {
         if (price <= GameManager.Instance.Emerald)
         {
-            if (coin.diggingSpeed / 2 > 0)
-            {
-                coin.diggingSpeed /= 2;
-            }
+            coin.diggingSpeed /= 2;
+            coin.isSpeeded = true;
+            GameManager.Instance.SetCoinSpeeded(coin.coinName);
+            CheckSpeededStatus();
+        }
+    }
+
+    public void CheckSpeededStatus()
+    {
+        if (coin.isSpeeded)
+        {
+            speedButton.SetActive(false);
+        }
+        else
+        {
+            speedButton.SetActive(true);
         }
     }
 
@@ -263,9 +278,8 @@ public class HorseCoin : MonoBehaviour
                 GameManager.Instance.GiveExp(coin.hirePerClicked);
                 Instance.OnSoundActivated(SoundType.CoinProduceFinished);
                 HiredUpdate();
+                yield break;
             }
-
-            yield return null;
         }
     }
 }

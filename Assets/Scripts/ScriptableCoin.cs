@@ -12,6 +12,7 @@ public class ScriptableCoin : ScriptableObject
     public float diggingSpeed;
     public bool isOpened;
     public bool isHired;
+    public bool isSpeeded;
     public int unlockPrice;
     public bool canBeOpened;
 

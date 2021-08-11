@@ -17,7 +17,7 @@ MonoBehaviour:
   hirePerClicked: 1
   diggingSpeed: 4
   isOpened: 1
-  isHired: 1
+  isHired: 0
   unlockPrice: 0
   canBeOpened: 0
   hirePerClickedDefault: 1

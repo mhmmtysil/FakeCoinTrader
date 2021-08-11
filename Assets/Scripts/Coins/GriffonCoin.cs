@@ -8,35 +8,37 @@ using static SoundManager;
 public class GriffonCoin : MonoBehaviour
 {
     public ScriptableCoin coin;
+    [Header("Digging Panel")]
     public TextMeshProUGUI coinBalanceText;
-    public TextMeshProUGUI coinBalanceTradePanelText;
     public TextMeshProUGUI coinPerMinuteText;
     public GameObject hiredText;
-
     public Button digButton;
-    public Button hirePanelHireButton;
-    public GameObject hirePanelHiredButton;
-    public GameObject lockedImageHirePanel;
-    public Button lockedButton;
     public Image lockedIcon;
     public Sprite grayLocked;
     public Sprite orangeLocked;
-    public GameObject lockedHireImage;
-
+    public Button lockedButton;
     public Slider coinSlider;
-
     public Sprite canBeOpened;
     public Sprite cannotBeOpened;
-
     public Animator anim;
-    int second;
 
-    //public GameObject nextCoin;
+    [Header("Hire Panel")]
+    public TextMeshProUGUI coinBalanceTradePanelText;
+    public Button hirePanelHireButton;
+    public GameObject hirePanelHiredButton;
+    public GameObject lockedImageHirePanel;
+    public GameObject lockedHireImage;
+
+    [Header("Speed Panel")]
+    public GameObject speedButton;
+
+    public GameObject nextCoin;
 
     private void FixedUpdate()
     {
         if (coin.isOpened)
         {
+            nextCoin.SetActive(true);
             lockedImageHirePanel.SetActive(false);
         }
         else
@@ -53,10 +55,21 @@ public class GriffonCoin : MonoBehaviour
                 lockedIcon.sprite = grayLocked;
                 lockedButton.interactable = false;
             }
+            nextCoin.SetActive(false);
             lockedImageHirePanel.SetActive(true);
         }
     }
 
+    public void UnlockCoin(int price)
+    {
+        coin.isOpened = true;
+        GameManager.Instance.BuyWithEmerald(price);
+        GameManager.Instance.SetCoinUnlock(coin.coinName);
+        nextCoin.SetActive(true);
+        lockedImageHirePanel.SetActive(false);
+        lockedButton.gameObject.SetActive(false);
+        CheckLockStatus();
+    }
     public void SetDefault()
     {
         coin.coinBalance = 0;
@@ -68,13 +81,14 @@ public class GriffonCoin : MonoBehaviour
 
     public void GetInfos()
     {
-        second = (int)coin.diggingSpeed;
         coin.coinBalance = GameManager.Instance.GriffonCoin;
-        coin.isHired = GameManager.Instance.griffonCoinHired;
-        coin.isOpened = GameManager.Instance.griffonCoinOpened;
+        coin.isHired = GameManager.Instance.GriffonCoinHired;
+        coin.isOpened = GameManager.Instance.GriffonCoinOpened;
+        coin.isSpeeded = GameManager.Instance.GriffonCoinSpeeded;
         UpdateCoinBalanceTexts(coin.coinBalance);
         CheckHireStatus();
         CheckLockStatus();
+        CheckSpeededStatus();
         if (coin.isHired)
         {
             UpdateSliderValue();
@@ -85,10 +99,22 @@ public class GriffonCoin : MonoBehaviour
     {
         if (price <= GameManager.Instance.Emerald)
         {
-            if (coin.diggingSpeed / 2 > 0)
-            {
-                coin.diggingSpeed /= 2;
-            }
+            coin.diggingSpeed /= 2;
+            coin.isSpeeded = true;
+            GameManager.Instance.SetCoinSpeeded(coin.coinName);
+            CheckSpeededStatus();
+        }
+    }
+
+    public void CheckSpeededStatus()
+    {
+        if (coin.isSpeeded)
+        {
+            speedButton.SetActive(false);
+        }
+        else
+        {
+            speedButton.SetActive(true);
         }
     }
 
@@ -96,11 +122,13 @@ public class GriffonCoin : MonoBehaviour
     {
         if (coin.isOpened)
         {
+            nextCoin.SetActive(true);
             lockedImageHirePanel.SetActive(false);
             lockedButton.gameObject.SetActive(false);
         }
         else
         {
+            nextCoin.SetActive(false);
             lockedImageHirePanel.SetActive(true);
             lockedButton.gameObject.SetActive(true);
         }
@@ -123,7 +151,6 @@ public class GriffonCoin : MonoBehaviour
             digButton.gameObject.SetActive(true);
         }
     }
-
     public void Hire(int price)
     {
         if (price <= GameManager.Instance.Emerald)
@@ -141,18 +168,6 @@ public class GriffonCoin : MonoBehaviour
         }
     }
 
-    public void OpenCoinWithEmerald(int price)
-    {
-        if (price <= GameManager.Instance.Emerald)
-        {
-            coin.isOpened = true;
-            lockedImageHirePanel.SetActive(false);
-            lockedButton.gameObject.SetActive(false);
-
-            GameManager.Instance.BuyWithEmerald(price);
-            GameManager.Instance.SetCoinUnlock(coin.coinName);
-        }
-    }
 
     public void UpdateCoinBalanceTexts(int _coinBalance)
     {
@@ -161,8 +176,7 @@ public class GriffonCoin : MonoBehaviour
 
         if (!coin.isHired)
         {
-            second = (int)coin.diggingSpeed;
-            TimeSpan result = TimeSpan.FromSeconds(second);
+            TimeSpan result = TimeSpan.FromSeconds(coin.diggingSpeed);
             string fromTimeString = result.ToString("mm':'ss");
             coinPerMinuteText.text = fromTimeString;
         }
@@ -213,7 +227,7 @@ public class GriffonCoin : MonoBehaviour
         {
             coin.coinBalance -= amount;
             UpdateCoinBalanceTexts(coin.coinBalance);
-            GameManager.Instance.GiveEmerald(10);
+            GameManager.Instance.GiveEmerald(100);
         }
     }
     void HiredUpdate()
@@ -256,9 +270,8 @@ public class GriffonCoin : MonoBehaviour
                 GameManager.Instance.GiveExp(coin.hirePerClicked);
                 Instance.OnSoundActivated(SoundType.CoinProduceFinished);
                 HiredUpdate();
+                yield break;
             }
-
-            yield return null;
         }
     }
 }

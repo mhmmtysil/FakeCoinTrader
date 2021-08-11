@@ -23,14 +23,19 @@ public class FakeCoin : MonoBehaviour
     public GameObject hireButton;
     public GameObject hiredButton;
 
+    [Header("Speed Panel")]
+    public GameObject speedButton;
+
 
     public void GetInfos()
     {
         coin.coinBalance = GameManager.Instance.FakeCoin;
-        coin.isHired = GameManager.Instance.fakeCoinHired;
-        coin.isOpened = GameManager.Instance.fakeCoinOpened;
+        coin.isHired = GameManager.Instance.FakeCoinHired;
+        coin.isOpened = GameManager.Instance.FakeCoinOpened;
+        coin.isSpeeded = GameManager.Instance.FakeCoinSpeeded;
         UpdateCoinBalanceTexts(coin.coinBalance);
         CheckHireStatus();
+        CheckSpeededStatus();
         if (coin.isHired)
         {
             StartCoroutine(StartDigging(coin.diggingSpeed));
@@ -49,10 +54,22 @@ public class FakeCoin : MonoBehaviour
     {
         if (price <= GameManager.Instance.Emerald)
         {
-            if (coin.diggingSpeed / 2 > 0)
-            {
-                coin.diggingSpeed /= 2;
-            }
+            coin.diggingSpeed /= 2;
+            coin.isSpeeded = true;
+            GameManager.Instance.SetCoinSpeeded(coin.coinName);
+            CheckSpeededStatus();
+        }
+    }
+
+    public void CheckSpeededStatus()
+    {
+        if (coin.isSpeeded)
+        {
+            speedButton.SetActive(false);
+        }
+        else
+        {
+            speedButton.SetActive(true);
         }
     }
 
@@ -134,8 +151,8 @@ public class FakeCoin : MonoBehaviour
         {
             coin.coinBalance -= amount;
             UpdateCoinBalanceTexts(coin.coinBalance);
-            GameManager.Instance.GiveCoin(100);
-            GameManager.Instance.GiveExp(100);
+            GameManager.Instance.GiveCoin(50);
+            GameManager.Instance.GiveExp(50);
         }
         else
         {
@@ -191,9 +208,8 @@ public class FakeCoin : MonoBehaviour
                 GameManager.Instance.GiveExp(coin.hirePerClicked);
                 Instance.OnSoundActivated(SoundType.CoinProduceFinished);
                 HiredUpdate();
+                yield break;
             }
-
-            yield return null;
         }
     }
 }

@@ -28,7 +28,7 @@ public class MessageHandler : MonoBehaviour
     private void Update()
     {
         _scrollContent.sizeDelta = new Vector2(_scrollContent.sizeDelta.x, 210 * messagesList.Count); 
-        if (messagesList.Count>10)
+        if (messagesList.Count>25)
         {
             Destroy(messagesList[0]);
             messagesList.RemoveAt(0);

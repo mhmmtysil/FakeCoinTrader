@@ -50,6 +50,7 @@ public class MessageManager : MonoBehaviour
         string userID = GameManager.Instance.userMailID;
         Message msg = new Message() { UserNickname = GameManager.Instance.username, MessageText = textField.text, SendingDate = Timestamp.GetCurrentTimestamp().ToDateTime().ToString(), UserMailID = userID };
         FirebaseFirestore.DefaultInstance.Collection("Messages").AddAsync(msg);
+        textField.text = "";
     }
 
 
