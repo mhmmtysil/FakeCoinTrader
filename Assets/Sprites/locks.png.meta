@@ -4,10 +4,10 @@ TextureImporter:
   internalIDToNameTable:
   - first:
       213: -4444144188493294841
-    second: locks_0
+    second: orangeLocked
   - first:
       213: 3589245351831783696
-    second: locks_1
+    second: grayLocked
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -109,7 +109,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: locks_0
+      name: orangeLocked
       rect:
         serializedVersion: 2
         x: 13
@@ -117,7 +117,7 @@ TextureImporter:
         width: 291
         height: 384
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -130,7 +130,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: locks_1
+      name: grayLocked
       rect:
         serializedVersion: 2
         x: 322
@@ -138,7 +138,7 @@ TextureImporter:
         width: 291
         height: 383
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []

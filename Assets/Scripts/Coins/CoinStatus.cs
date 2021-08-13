@@ -5,13 +5,7 @@ using UnityEngine;
 public class CoinStatus : MonoBehaviour
 {
     public CoinStatus Instance;
-
-    public FakeCoin fakeCoin;
-    public HorseCoin horseCoin;
-    public LightCore lightCore;
-    public InogamiCoin inogamiCoin;
-    public OdeaCoin odeaCoin;
-    public GriffonCoin griffonCoin;
+    public CoinDisplayer[] coinDisplayers;
 
 
     private void Awake()
@@ -21,21 +15,17 @@ public class CoinStatus : MonoBehaviour
 
     public void GetStatus()
     {
-        fakeCoin.GetInfos();
-        horseCoin.GetInfos();
-        lightCore.GetInfos();
-        inogamiCoin.GetInfos();
-        odeaCoin.GetInfos();
-        griffonCoin.GetInfos();
+        for (int i = 0; i < coinDisplayers.Length; i++)
+        {
+            coinDisplayers[i].GetInfos();
+        }
     }
 
     public void SetDefaults()
     {
-        fakeCoin.SetDefault();
-        horseCoin.SetDefault();
-        lightCore.SetDefault();
-        inogamiCoin.SetDefault();
-        odeaCoin.SetDefault();
-        griffonCoin.SetDefault();
+        for (int i = 0; i < coinDisplayers.Length; i++)
+        {
+            coinDisplayers[i].SetDefault();
+        }
     }
 }

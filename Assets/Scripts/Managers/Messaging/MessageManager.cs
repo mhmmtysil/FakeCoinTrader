@@ -26,7 +26,7 @@ public class MessageManager : MonoBehaviour
     }
     void StartListening()
     {
-        FirebaseFirestore.DefaultInstance.Collection("Messages").OrderBy("SendingDate").LimitToLast(10).Listen(task =>
+        FirebaseFirestore.DefaultInstance.Collection("Messages").OrderBy("SendingDate").LimitToLast(25).Listen(task =>
         {
             foreach (DocumentChange change in task.GetChanges(MetadataChanges.Exclude))
             {

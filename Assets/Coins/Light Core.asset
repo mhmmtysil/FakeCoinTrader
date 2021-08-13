@@ -15,10 +15,13 @@ MonoBehaviour:
   coinName: LightCore
   coinBalance: 0
   hirePerClicked: 3
-  diggingSpeed: 15
+  diggingSpeed: 30
   isOpened: 0
   isHired: 0
+  isSpeeded: 0
   unlockPrice: 1500
   canBeOpened: 0
+  tradeBalance: 80
+  speedUpPrice: 800
   hirePerClickedDefault: 3
-  diggingSpeedDefault: 15
+  diggingSpeedDefault: 30

@@ -8,6 +8,7 @@ using Firebase.Firestore;
 using Firebase.Extensions;
 using System.Collections;
 using static EventManager;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,11 +17,6 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Panel[] panels;
 
-
-    [Header("Loading Screen")]
-    public GameObject loadingScreen;
-    public GameObject loadingText;
-    public GameObject tapToContinueText;
 
     public TextMeshProUGUI usernameWarningText;
     public TMP_InputField usernameIF;
@@ -166,9 +162,16 @@ public class GameManager : MonoBehaviour
 
     public CoinStatus coinStatus;
 
+    #region In Game Notification Managers
+    [SerializeField] GameObject mainMenuButtonNotification;
+    [SerializeField] GameObject tradeAvailableNotification;
 
 
-    
+    #endregion
+
+
+
+
 
     private void Awake()
     {
@@ -191,7 +194,8 @@ public class GameManager : MonoBehaviour
         auth.StateChanged += AuthStateChanged;
         AuthStateChanged(this, null);
         
-    }
+    }        
+
     public void SignUpWithMail()
     {
         auth.CreateUserWithEmailAndPasswordAsync(userMailInputField.text, userPasswordInputField.text).ContinueWithOnMainThread(task => {
@@ -305,8 +309,7 @@ public class GameManager : MonoBehaviour
                         griffonCoinSpeeded = user.GriffonCoinSpeeded;
 
                         usernameText.text = username;
-                        ConvertExpText();
-                        expSlider.value = Convert.ToSingle(exp / maxExp);
+                        ConvertExpText();                        
                         levelText.text = level.ToString();
                         levelTextSettings.text = level.ToString();
                         coinBalanceText.text = coin.ToString();
@@ -450,6 +453,14 @@ public class GameManager : MonoBehaviour
                             signInPanel.SetActive(false);
                             signUpPanel.SetActive(false);
                             setUsernamePanel.SetActive(false);
+
+                            usernameText.text = username;
+                            ConvertExpText();
+                            expSlider.value = Convert.ToSingle(exp / maxExp);
+                            levelText.text = level.ToString();
+                            levelTextSettings.text = level.ToString();
+                            coinBalanceText.text = coin.ToString();
+                            emeraldBalanceText.text = emerald.ToString();
                         }
                         else
                         {
@@ -460,13 +471,6 @@ public class GameManager : MonoBehaviour
                             signUpPanel.SetActive(false);
                             setUsernamePanel.SetActive(true);
                         }
-                        usernameText.text = username;
-                        ConvertExpText();
-                        expSlider.value = Convert.ToSingle(exp / maxExp);
-                        levelText.text = level.ToString();
-                        levelTextSettings.text = level.ToString();
-                        coinBalanceText.text = coin.ToString();
-                        emeraldBalanceText.text = emerald.ToString();
                     });
                 }
             });
@@ -550,7 +554,8 @@ public class GameManager : MonoBehaviour
 
     private void ConvertExpText()
     {
-        expText.text = exp.ToString("#,##0").Replace(',', '.') + "/" + maxExp.ToString("#,##0").Replace(',', '.'); 
+        expText.text = exp.ToString("#,##0").Replace(',', '.') + "/" + maxExp.ToString("#,##0").Replace(',', '.');
+        expSlider.value = Convert.ToSingle(exp / maxExp);
     }
 
     public void SetLevel(int value)
@@ -558,7 +563,7 @@ public class GameManager : MonoBehaviour
         level += value;
         levelText.text = level.ToString();
         levelTextSettings.text = level.ToString();
-        maxExp += level * 100;
+        maxExp = level * 100;
         UpdateMaxExp();
     }
     public void GiveExp(int value) 
@@ -569,8 +574,8 @@ public class GameManager : MonoBehaviour
             PanelChange(PanelType.LevelUp);
             exp -= maxExp;
             SetLevel(1);
-            untakenLevelReward += 10;
-            SetUntakenLevelReward(10);
+            untakenLevelReward += 20;
+            SetUntakenLevelReward(20);
             untakenLevelRewardText.text = "x" + untakenLevelReward;
             if (exp>maxExp)
             {
@@ -689,6 +694,7 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(false);
+                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.MainMenu:
                 panels[0].gameObject.SetActive(false);
@@ -699,88 +705,50 @@ public class GameManager : MonoBehaviour
                 panels[5].gameObject.SetActive(false);
                 panels[6].gameObject.SetActive(false);
                 panels[7].gameObject.SetActive(false);
-                break;
-            case PanelType.Trade:
-                panels[0].gameObject.SetActive(false);
-                panels[1].gameObject.SetActive(true);
-                panels[2].gameObject.SetActive(true);
-                panels[3].gameObject.SetActive(false);
-                panels[4].gameObject.SetActive(false);
-                panels[5].gameObject.SetActive(false);
-                panels[6].gameObject.SetActive(false);
-                panels[7].gameObject.SetActive(false);
-                break;
-            case PanelType.Hire:
-                panels[0].gameObject.SetActive(false);
-                panels[1].gameObject.SetActive(true);
-                panels[2].gameObject.SetActive(false);
-                panels[3].gameObject.SetActive(true);
-                panels[4].gameObject.SetActive(false);
-                panels[5].gameObject.SetActive(false);
-                panels[6].gameObject.SetActive(false);
-                panels[7].gameObject.SetActive(false);
-                break;
-            case PanelType.Shop:
-                panels[0].gameObject.SetActive(false);
-                panels[1].gameObject.SetActive(true);
-                panels[2].gameObject.SetActive(false);
-                panels[3].gameObject.SetActive(false);
-                panels[4].gameObject.SetActive(true);
-                panels[5].gameObject.SetActive(false);
-                panels[6].gameObject.SetActive(false);
-                panels[7].gameObject.SetActive(false);
-                break;
-            case PanelType.Profile:
-                panels[0].gameObject.SetActive(false);
-                panels[1].gameObject.SetActive(true);
-                panels[2].gameObject.SetActive(false);
-                panels[3].gameObject.SetActive(false);
-                panels[4].gameObject.SetActive(false);
-                panels[5].gameObject.SetActive(true);
-                panels[6].gameObject.SetActive(false);
-                panels[7].gameObject.SetActive(false);
-                break;            
-            case PanelType.Settings:
-                panels[0].gameObject.SetActive(false);
-                panels[1].gameObject.SetActive(true);
-                panels[2].gameObject.SetActive(false);
-                panels[3].gameObject.SetActive(false);
-                panels[4].gameObject.SetActive(false);
-                panels[5].gameObject.SetActive(false);
-                panels[6].gameObject.SetActive(true);
-                panels[7].gameObject.SetActive(false);
-                break;
-            case PanelType.LevelUp:
-                panels[0].gameObject.SetActive(false);
-                panels[1].gameObject.SetActive(true);
-                panels[2].gameObject.SetActive(false);
-                panels[3].gameObject.SetActive(false);
-                panels[4].gameObject.SetActive(false);
-                panels[5].gameObject.SetActive(false);
-                panels[6].gameObject.SetActive(false);
-                panels[7].gameObject.SetActive(true);
+                panels[8].gameObject.SetActive(false);
                 break;
             case PanelType.Loading:
-                panels[8].gameObject.SetActive(true);
+                panels[9].gameObject.SetActive(true);
                 break;
         }
     }
 
     #endregion
 
-    
+    #region In Game Notification Manager
+
+    public void TradeableNotification()
+    {
+        mainMenuButtonNotification.SetActive(true);
+        tradeAvailableNotification.SetActive(true);
+    }
+    public void TradeableNotificationReceived()
+    {
+        mainMenuButtonNotification.SetActive(false);
+        tradeAvailableNotification.SetActive(false);
+    }
+
+    #endregion
+
 }
 
+public enum NotificationType
+{
+    tradeAvailable,
+    achievementReached
+}
 
 public enum PanelType
 {
     NewUser,
     MainMenu,
     Trade,
+    SpeedUp,
     Hire,
     Shop,
     Profile,
     Settings,
+    HowToEarn,
     LevelUp,
     Loading
 }

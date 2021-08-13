@@ -15,6 +15,8 @@ public class ScriptableCoin : ScriptableObject
     public bool isSpeeded;
     public int unlockPrice;
     public bool canBeOpened;
+    public int tradeBalance;
+    public int speedUpPrice;
 
     [Header("Coin Defaults")]
     public int hirePerClickedDefault;

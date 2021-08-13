@@ -50,7 +50,6 @@ public class MessageHandler : MonoBehaviour
         {
             var go = Instantiate(_messageObjPrefab, transform);
             messagesList.Add(go.gameObject);
-            Debug.Log(messagesList);
             MessagePref newMessage = go.GetComponent<MessagePref>();
             newMessage.SetMessage(message);
             Invoke(nameof(SetScrollBar), 0.3f);
