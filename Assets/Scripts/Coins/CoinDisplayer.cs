@@ -82,6 +82,8 @@ public class CoinDisplayer : MonoBehaviour
 
     public void GetInfos()
     {
+        coinSlider.value = 0;
+        digButton.interactable = true;
         switch (coin.coinName)
         {
             case "FakeCoin":
@@ -329,9 +331,9 @@ public class CoinDisplayer : MonoBehaviour
     {
         isproducing = false;
         StopCoroutine(StartDigging());
-        yield return new WaitForSeconds(0.4f);
         coinSlider.value = 0;
         anim.SetTrigger("nonproducing");
+        yield return new WaitForSeconds(0.1f);
         coin.coinBalance += coin.hirePerClicked;
         digButton.interactable = true;
         UpdateCoinBalanceTexts(coin.coinBalance);
