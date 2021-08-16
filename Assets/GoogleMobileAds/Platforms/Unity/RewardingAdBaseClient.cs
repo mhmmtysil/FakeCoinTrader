@@ -87,7 +87,9 @@ namespace GoogleMobileAds.Unity
 
         internal void CreateButtonBehavior()
         {
+#pragma warning disable UNT0010 // Component instance creation
             buttonBehaviour = new ButtonBehaviour();
+#pragma warning restore UNT0010 // Component instance creation
         }
 
         // Load a rewarding ad.
